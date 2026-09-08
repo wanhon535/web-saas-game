@@ -56,7 +56,7 @@ const server = http.createServer((req, res) => {
         let filePath = path.join(ROOT_DIR, req.url === '/' ? 'index.html' : req.url);
         if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
             const ext = path.extname(filePath);
-            const contentType = ext === '.html' ? 'text/html' : (ext === '.json' ? 'application/json' : 'text/plain');
+            const contentType = ext === '.html' ? 'text/html' : ext === '.css' ? 'text/css' : ext === '.js' ? 'application/javascript' : ext === '.json' ? 'application/json' : 'text/plain';
             res.writeHead(200, { 'Content-Type': contentType + '; charset=utf-8' });
             fs.createReadStream(filePath).pipe(res);
             return;
