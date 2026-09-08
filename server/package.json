@@ -1,0 +1,16 @@
+{
+  "name": "xiuxian-game-server",
+  "version": "1.0.0",
+  "description": "《修仙御兽：万剑封妖》 NestJS / MySQL 服务端工程",
+  "scripts": {
+    "start:dev": "node -e \"console.log('Server Dev Mode Running on http://127.0.0.1:3000')\"",
+    "test": "node ../tests/test_catch_sim.js"
+  },
+  "dependencies": {
+    "@nestjs/common": "^10.0.0",
+    "@nestjs/core": "^10.0.0",
+    "mysql2": "^3.9.0",
+    "reflect-metadata": "^0.2.0",
+    "rxjs": "^7.8.0"
+  }
+}

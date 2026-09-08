@@ -1,0 +1,12 @@
+{
+  "name": "xiuxian-game-client",
+  "version": "1.0.0",
+  "description": "《修仙御兽：万剑封妖》 Cocos Creator 3.8 客户端工程",
+  "scripts": {
+    "build:douyin": "echo Building for Douyin Minigame...",
+    "build:wechat": "echo Building for WeChat Minigame..."
+  },
+  "dependencies": {
+    "@cocos/creator": "^3.8.0"
+  }
+}

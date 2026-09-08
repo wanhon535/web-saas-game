@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>《修仙御兽：万剑封妖》- P0 核心闭环 MVP</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body {
+            background-color: #020617; color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", sans-serif;
+            display: flex; justify-content: center; align-items: center; min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #game-wrapper {
+            width: 100%; max-width: 420px; height: 100vh; max-height: 860px;
+            background: linear-gradient(180deg, #0f172a 0%, #020617 100%);
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden;
+        }
+
+        /* HEADER */
+        .hub-header {
+            height: 52px; background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 12px; z-index: 20;
+        }
+        .user-info-box { display: flex; align-items: center; gap: 8px; }
+        .user-avatar {
+            width: 34px; height: 34px; border-radius: 50%; background: #38bdf8;
+            display: flex; justify-content: center; align-items: center; font-size: 18px;
+            border: 2px solid #7dd3fc;
+        }
+        .user-name-lvl { display: flex; flex-direction: column; }
+        .user-name { font-size: 13px; font-weight: 800; color: #f8fafc; }
+        .user-lvl { font-size: 10px; color: #fbbf24; font-weight: 700; }
+        .currency-group { display: flex; gap: 8px; }
+        .currency-item {
+            background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; padding: 3px 8px; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; gap: 4px; color: #f8fafc;
+        }
+
+        /* VIEW PANELS */
+        .view-panel {
+            flex: 1; display: none; flex-direction: column; padding: 10px; gap: 10px;
+            overflow-y: auto; padding-bottom: 60px;
+        }
+        .view-panel.active { display: flex; }
+
+        /* CARDS */
+        .card {
+            background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .card-title {
+            font-size: 13px; font-weight: 900; color: #38bdf8; display: flex;
+            justify-content: space-between; align-items: center;
+        }
+
+        /* SHORTCUTS ROW */
+        .hub-shortcut-bar { display: flex; justify-content: space-between; padding: 2px 4px; }
+        .shortcut-item {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            font-size: 10px; color: #cbd5e1; cursor: pointer;
+        }
+        .shortcut-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.15); display: flex;
+            justify-content: center; align-items: center; font-size: 18px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        /* STAGE BANNER CARD */
+        .stage-banner-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+            border: 1px solid rgba(245, 158, 11, 0.4); border-radius: 16px; padding: 12px;
+            display: flex; flex-direction: column; gap: 10px; position: relative;
+        }
+        .stage-path-header { display: flex; justify-content: space-between; align-items: center; }
+        .stage-title-text { font-size: 15px; font-weight: 900; color: #fbbf24; }
+        .boss-preview-badge {
+            background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 10px; padding: 2px 8px; font-size: 10px; color: #fca5a5; font-weight: 700;
+        }
+
+        /* HERO LINEUP PLATFORM */
+        .hero-platform {
+            background: rgba(15, 23, 42, 0.7); border-radius: 12px; padding: 10px;
+            display: flex; justify-content: space-around; align-items: center;
+            border: 1px solid rgba(56, 189, 248, 0.15); position: relative;
+        }
+        .power-tag {
+            position: absolute; top: -10px; right: 10px; background: #d97706;
+            color: #fff; font-size: 9px; font-weight: 900; padding: 2px 8px; border-radius: 8px;
+        }
+        .hero-lineup-slot {
+            display: flex; flex-direction: column; align-items: center; gap: 2px;
+            font-size: 18px;
+        }
+        .hero-lineup-slot span { font-size: 9px; color: #94a3b8; font-weight: 700; }
+
+        /* IDLE MASCOT BOX */
+        .idle-helper-box {
+            background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.4);
+            border-radius: 10px; padding: 8px 12px; display: flex; justify-content: space-between;
+            align-items: center;
+        }
+        .idle-mascot { display: flex; align-items: center; gap: 6px; font-size: 16px; }
+        .idle-mascot span { font-size: 11px; font-weight: 800; color: #6ee7b7; }
+        .chest-group { font-size: 16px; cursor: pointer; animation: bounce 2s infinite; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+
+        /* HERO SHOWCASE CARD (TAB 2) */
+        .hero-showcase-card {
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95));
+            border-radius: 16px; border: 1px solid rgba(56, 189, 248, 0.3); padding: 12px;
+            display: flex; flex-direction: column; align-items: center; gap: 10px; position: relative;
+        }
+        .hero-main-avatar {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: radial-gradient(circle, #38bdf8 0%, #0369a1 100%);
+            border: 3px solid #7dd3fc; display: flex; justify-content: center; align-items: center;
+            font-size: 38px; box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+        }
+        .hero-power-display {
+            background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.5);
+            border-radius: 12px; padding: 4px 16px; font-size: 13px; font-weight: 900; color: #fbbf24;
+        }
+        .equip-slots-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 4px;
+        }
+        .equip-slot-item {
+            background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; height: 60px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; position: relative; cursor: pointer;
+        }
+        .equip-slot-item.equipped { border-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+        .equip-slot-icon { font-size: 22px; }
+        .equip-slot-label { font-size: 9px; color: #94a3b8; margin-top: 2px; }
+        .equip-lvl-badge {
+            position: absolute; top: 2px; right: 4px; font-size: 8px; font-weight: 800; color: #22c55e;
+        }
+
+        /* SUB TABS BAR */
+        .sub-tab-bar { display: flex; gap: 6px; width: 100%; }
+        .sub-tab-btn {
+            flex: 1; padding: 6px 0; background: rgba(30, 41, 59, 0.8); border: none;
+            border-radius: 8px; color: #94a3b8; font-size: 11px; font-weight: 800; cursor: pointer;
+        }
+        .sub-tab-btn.active { background: #38bdf8; color: #0f172a; }
+
+        /* INVENTORY GRID */
+        .inventory-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .equip-card {
+            background: rgba(15, 23, 42, 0.7); border-radius: 10px; padding: 8px;
+            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+        .equip-card.quality-epic { border-color: #a855f7; background: rgba(168, 85, 247, 0.1); }
+        .equip-card.quality-emperor { border-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .equip-card.quality-myth { border-color: #f59e0b; background: rgba(245, 158, 11, 0.15); }
+        .equip-card-icon { font-size: 24px; }
+        .equip-card-info { display: flex; flex-direction: column; }
+        .equip-card-name { font-size: 11px; font-weight: 800; color: #f8fafc; }
+        .equip-card-stat { font-size: 9px; color: #38bdf8; }
+        .upgrade-arrow { position: absolute; right: 6px; top: 6px; font-size: 10px; }
+
+        /* IN-BATTLE GAME PANEL */
+        #panel-game { padding: 0; position: relative; background: #020617; overflow: hidden; }
+        .battle-top-bar {
+            height: 44px; background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 12px;
+            z-index: 10;
+        }
+        .battle-stage-title { font-size: 13px; font-weight: 900; color: #fbbf24; }
+        .battle-wave-text { font-size: 11px; font-weight: 800; color: #38bdf8; }
+
+        /* RAMPART HP BAR */
+        .rampart-hp-box {
+            position: absolute; top: 48px; left: 12px; right: 12px; z-index: 10;
+            background: rgba(15, 23, 42, 0.85); border-radius: 8px; padding: 4px 8px;
+            display: flex; justify-content: space-between; align-items: center;
+            border: 1px solid rgba(56, 189, 248, 0.3); font-size: 10px; font-weight: 800;
+        }
+        .rampart-hp-bar-bg { flex: 1; height: 6px; background: #334155; border-radius: 3px; margin: 0 8px; overflow: hidden; }
+        .rampart-hp-bar-fill { height: 100%; width: 100%; background: #22c55e; transition: width 0.2s; }
+
+        /* CANVAS */
+        #gameCanvas { width: 100%; flex: 1; display: block; background: #090d16; }
+
+        /* BOSS CATCH BAR (UI SLIDE-OUT) */
+        .catch-bar {
+            position: absolute; bottom: 60px; left: 0; right: 0; background: rgba(15, 23, 42, 0.95);
+            border-top: 2px solid #f59e0b; padding: 10px 12px; display: flex; flex-direction: column;
+            gap: 8px; z-index: 30; transform: translateY(120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.6);
+        }
+        .catch-bar.active { transform: translateY(0); }
+        .catch-title { font-size: 11px; font-weight: 900; color: #fbbf24; text-align: center; }
+        .catch-tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .tool-btn {
+            background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 10px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center;
+            cursor: pointer; transition: transform 0.1s;
+        }
+        .tool-btn:active { transform: scale(0.95); }
+        .tool-icon { font-size: 20px; }
+        .tool-name { font-size: 10px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
+        .tool-rate { font-size: 8px; color: #22c55e; font-weight: 700; }
+
+        /* IN-BATTLE BOTTOM CONTROL BAR */
+        .battle-bottom-bar {
+            height: 56px; background: rgba(15, 23, 42, 0.95); border-top: 1px solid rgba(56, 189, 248, 0.2);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 10px; z-index: 20;
+        }
+        .battle-ctrl-btn {
+            background: linear-gradient(135deg, #1e293b, #0f172a); border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 10px; padding: 6px 12px; display: flex; flex-direction: column; align-items: center;
+            font-size: 11px; font-weight: 800; color: #f8fafc; cursor: pointer; flex: 1; margin: 0 3px;
+        }
+        .battle-ctrl-sub { font-size: 9px; color: #fbbf24; font-weight: 700; margin-top: 1px; }
+
+        /* NAVIGATION TABS (5 TABS) */
+        .tab-nav {
+            height: 56px; background: rgba(15, 23, 42, 0.98); border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; justify-content: space-around; align-items: center; position: absolute;
+            bottom: 0; left: 0; right: 0; z-index: 50;
+        }
+        .tab-btn {
+            background: none; border: none; display: flex; flex-direction: column; align-items: center;
+            gap: 2px; color: #64748b; font-size: 10px; font-weight: 800; cursor: pointer; flex: 1;
+        }
+        .tab-btn.active { color: #38bdf8; }
+        .tab-icon { font-size: 18px; }
+
+        /* SETTLEMENT MODAL (MATCHING REF IMAGE #4) */
+        .modal-overlay {
+            position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+            background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(4px); z-index: 100;
+            display: none; justify-content: center; align-items: center; padding: 16px;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-card {
+            width: 100%; max-width: 360px; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+            border: 2px solid #f59e0b; border-radius: 20px; padding: 16px; display: flex;
+            flex-direction: column; gap: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8);
+            position: relative; animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .settle-header { text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .settle-crown { font-size: 36px; line-height: 1; }
+        .settle-title { font-size: 20px; font-weight: 900; color: #fbbf24; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+        .settle-sub { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+        .settle-section {
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .settle-sec-title { font-size: 11px; font-weight: 900; color: #38bdf8; }
+
+        /* DAMAGE STATS BAR ROW */
+        .damage-bar-row { display: flex; align-items: center; gap: 8px; font-size: 10px; }
+        .damage-hero-label { width: 80px; font-weight: 800; color: #f8fafc; display: flex; align-items: center; gap: 4px; }
+        .damage-bar-track { flex: 1; height: 8px; background: #0f172a; border-radius: 4px; overflow: hidden; }
+        .damage-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #818cf8); border-radius: 4px; }
+        .damage-val-text { width: 45px; text-align: right; font-weight: 800; color: #fbbf24; }
+        .mvp-badge {
+            background: #ef4444; color: #fff; font-size: 8px; font-weight: 900;
+            padding: 1px 4px; border-radius: 4px; margin-left: 2px;
+        }
+
+        /* REWARD GRID */
+        .reward-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .reward-item-box {
+            background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 10px; padding: 6px 2px; display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+        }
+        .reward-item-icon { font-size: 20px; }
+        .reward-item-name { font-size: 9px; font-weight: 800; color: #f8fafc; margin-top: 2px; }
+
+        /* BUTTONS */
+        .btn-primary {
+            background: linear-gradient(135deg, #0284c7, #0369a1); border: none; border-radius: 10px;
+            color: #fff; font-weight: 800; font-size: 12px; cursor: pointer; text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); transition: transform 0.1s;
+        }
+        .btn-primary:active { transform: scale(0.97); }
+        .btn-gold { background: linear-gradient(135deg, #d97706, #b45309); }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: absolute; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.95); border: 1px solid #38bdf8; color: #f8fafc;
+            padding: 6px 16px; border-radius: 20px; font-size: 11px; font-weight: 800;
+            z-index: 200; opacity: 0; pointer-events: none; transition: all 0.3s;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <!-- Header -->
+        <div class="hub-header">
+            <div class="user-info-box">
+                <div class="user-avatar">☯️</div>
+                <div class="user-name-lvl">
+                    <div class="user-name" id="user-name-display">蜀山掌门</div>
+                    <div class="user-lvl" id="user-lvl-display">Lv.15 (金丹期)</div>
+                </div>
+            </div>
+            <div class="currency-group">
+                <div class="currency-item">💎 <span id="gem-display">0</span></div>
+                <div class="currency-item">🪙 <span id="gold-display">8800</span></div>
+                <div class="currency-item">🍖 <span id="stamina-display">51/60</span></div>
+            </div>
+        </div>
+
+        <!-- View Panels -->
+
+        <!-- TAB 1: HUB (蜀山主城) -->
+        <div id="panel-hub" class="view-panel active">
+            <!-- Shortcuts row -->
+            <div class="hub-shortcut-bar">
+                <div class="shortcut-item" onclick="showToast('修仙特惠礼包限时开放中！')">
+                    <div class="shortcut-icon">🏷️</div>
+                    <span>仙册特惠</span>
+                </div>
+                <div class="shortcut-item" onclick="showToast('首充即送 SSR 诛仙神剑！')">
+                    <div class="shortcut-icon">🎁</div>
+                    <span>首充仙赐</span>
+                </div>
+                <div class="shortcut-item" onclick="showToast('千抽修仙盛宴已开启！')">
+                    <div class="shortcut-icon">🎰</div>
+                    <span>仙灵千抽</span>
+                </div>
+                <div class="shortcut-item" onclick="showToast('道友列表更新完成')">
+                    <div class="shortcut-icon">👥</div>
+                    <span>道友</span>
+                </div>
+                <div class="shortcut-item" onclick="showToast('宗门传音已领完')">
+                    <div class="shortcut-icon">✉️</div>
+                    <span>传音</span>
+                </div>
+            </div>
+
+            <!-- Stage path banner -->
+            <div class="stage-banner-card">
+                <div class="stage-path-header">
+                    <div class="stage-title-text">🚩 <span id="hub-stage-name">第2章：万妖沙场 (史诗)</span></div>
+                    <div class="boss-preview-badge">👹 守关大妖 9000 HP</div>
+                </div>
+
+                <!-- Hero lineup platform (6大修仙战位) -->
+                <div class="hero-platform">
+                    <div class="power-tag">⚔️ 战力: <span id="hub-power-display">12,850</span></div>
+                    <div class="hero-lineup-slot">🗡️<span>剑修</span></div>
+                    <div class="hero-lineup-slot">⚡<span>符修</span></div>
+                    <div class="hero-lineup-slot">🔥<span>丹修</span></div>
+                    <div class="hero-lineup-slot">🧊<span>冰修</span></div>
+                    <div class="hero-lineup-slot">🦊<span>赤狐</span></div>
+                    <div class="hero-lineup-slot">🛡️<span>阵修</span></div>
+                </div>
+
+                <!-- Idle Helper Mascot -->
+                <div class="idle-helper-box">
+                    <div class="idle-mascot">🧘 <span>Zzz 洞府吐纳仙石收益: +142.98/h</span></div>
+                    <div class="chest-group" onclick="collectIdleRewards()">🎁 🎁 🎁</div>
+                </div>
+
+                <!-- Challenge Button -->
+                <button class="btn-primary btn-gold" onclick="startCombatStage(1)" style="font-size: 15px; padding: 12px 0;">
+                    🚀 开启历练挑战 (🍖 10)
+                </button>
+            </div>
+
+            <!-- Stage Select Card (3大修仙副本阶梯) -->
+            <div class="card">
+                <div class="card-title">📜 修仙副本阶梯</div>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startCombatStage(1)">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 800; color: #f8fafc;">第1章：幽冥荒原 (普通历练)</div>
+                            <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">5波小妖 | 掉落仙石+法宝 | 守关大妖: 寻木青雀 (3000 HP)</div>
+                        </div>
+                        <button class="btn-primary" style="padding: 6px 12px; font-size: 11px;">入场</button>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startCombatStage(2)">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 800; color: #f8fafc;">第2章：万妖沙场 (史诗试炼)</div>
+                            <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">8波妖魔 | 掉落炼狱晶核 | 守关大妖: 机关木牛 (9000 HP)</div>
+                        </div>
+                        <button class="btn-primary" style="background: linear-gradient(135deg, #7c3aed, #6d28d9); padding: 6px 12px; font-size: 11px;">入场</button>
+                    </div>
+                    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;" onclick="startCombatStage(3)">
+                        <div>
+                            <div style="font-size: 12px; font-weight: 800; color: #f8fafc;">第3章：封妖秘境 (深渊秘境)</div>
+                            <div style="font-size: 10px; color: #94a3b8; margin-top: 2px;">12波大魔 | 掉落神魔法宝 | 守关大妖: 太古鲲鹏 (25000 HP)</div>
+                        </div>
+                        <button class="btn-primary" style="background: linear-gradient(135deg, #dc2626, #991b1b); padding: 6px 12px; font-size: 11px;">入场</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: HERO (仙尊与法宝) -->
+        <div id="panel-hero" class="view-panel">
+            <div class="hero-showcase-card">
+                <div class="hero-main-avatar">☯️</div>
+                <div style="text-align: center;">
+                    <div style="font-size: 14px; font-weight: 900; color: #f8fafc;">修仙道尊·万剑真君</div>
+                    <div style="font-size: 11px; color: #38bdf8; margin-top: 2px;">金丹大圆满 · 剑符双修</div>
+                </div>
+                <div class="hero-power-display">⚔️ 战力: <span id="hero-tab-power">12,850</span></div>
+
+                <!-- 6 Equip Slots Grid (Xianxia Gear) -->
+                <div class="equip-slots-grid">
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">📿</span>
+                        <span class="equip-slot-label">太玄项链</span>
+                        <span class="equip-lvl-badge">10级</span>
+                    </div>
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">💍</span>
+                        <span class="equip-slot-label">乾坤仙戒</span>
+                        <span class="equip-lvl-badge">12级</span>
+                    </div>
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">👑</span>
+                        <span class="equip-slot-label">紫金仙冠</span>
+                        <span class="equip-lvl-badge">8级</span>
+                    </div>
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">🪞</span>
+                        <span class="equip-slot-label">昊天神镜</span>
+                        <span class="equip-lvl-badge">15级</span>
+                    </div>
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">👟</span>
+                        <span class="equip-slot-label">踏云仙靴</span>
+                        <span class="equip-lvl-badge">10级</span>
+                    </div>
+                    <div class="equip-slot-item equipped">
+                        <span class="equip-slot-icon">🥋</span>
+                        <span class="equip-slot-label">八卦道袍</span>
+                        <span class="equip-lvl-badge">14级</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sub Tab Bar -->
+            <div class="sub-tab-bar">
+                <button class="sub-tab-btn" onclick="switchSubTab(this)">图腾</button>
+                <button class="sub-tab-btn active" onclick="switchSubTab(this)">装备</button>
+                <button class="sub-tab-btn" onclick="switchSubTab(this)">材料</button>
+            </div>
+
+            <!-- Inventory Grid -->
+            <div class="card">
+                <div class="card-title">
+                    <span>🎒 宗门宝库</span>
+                    <div style="display: flex; gap: 4px;">
+                        <button class="btn-primary" style="padding: 3px 8px; font-size: 10px;" onclick="showToast('一键装备最高战力仙宝！')">⚡ 一键装备</button>
+                        <button class="btn-primary" style="padding: 3px 8px; font-size: 10px; background: #64748b;" onclick="showToast('已完成宝库清理')">♻️ 分解</button>
+                    </div>
+                </div>
+                <div id="equip-inventory-grid" class="inventory-grid"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TERRITORY (洞府: 灵兽 & 炼器) -->
+        <div id="panel-territory" class="view-panel">
+            <!-- Pets section -->
+            <div class="card">
+                <div class="card-title">🦊 灵兽阁 (图鉴: <span id="pet-count-display">2</span>)</div>
+                <div id="pet-inventory-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;"></div>
+                <button class="btn-primary" onclick="exchangePetWithShards()">🧩 消耗 10 精魄兑换紫金灵宠</button>
+            </div>
+
+            <!-- Forge Section (晶核保底合成) -->
+            <div class="card">
+                <div class="card-title">⚒️ 炼器阁</div>
+                <div style="font-size: 11px; color: #94a3b8;">
+                    50 炼狱晶核保底锻造神话法宝，或消耗3件同阶装备升阶。
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
+                    <span style="font-size: 11px; font-weight: 700; color: #f59e0b;">🛡️ 50晶核保底进度</span>
+                    <span id="craft-progress-text" style="font-size: 11px; font-weight: 800; color: #38bdf8;">68 / 50</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden;">
+                    <div id="craft-progress-fill" style="height: 100%; width: 100%; background: linear-gradient(90deg, #d97706, #f59e0b); transition: width 0.3s;"></div>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <button class="btn-primary" style="flex: 1;" onclick="doSynthetic3in1()">⚒️ 三合一升阶</button>
+                    <button class="btn-primary btn-gold" style="flex: 1;" onclick="doGuaranteeCraft()">🛡️ 保底锻造</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: SHOP (宗门仙坊) -->
+        <div id="panel-shop" class="view-panel">
+            <div class="card">
+                <div class="card-title">🛒 宗门仙坊</div>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;">
+                    <div class="card" style="align-items: center; text-align: center;">
+                        <div style="font-size: 28px;">📜</div>
+                        <div style="font-size: 12px; font-weight: 800;">试炼卷轴包</div>
+                        <div style="font-size: 10px; color: #f59e0b;">🪙 1000 仙石</div>
+                        <button class="btn-primary" style="padding: 4px 10px; font-size: 10px; margin-top: 4px;" onclick="buyItem('epic_ticket', 1000)">购买</button>
+                    </div>
+                    <div class="card" style="align-items: center; text-align: center;">
+                        <div style="font-size: 28px;">🏺</div>
+                        <div style="font-size: 12px; font-weight: 800;">紫金葫芦</div>
+                        <div style="font-size: 10px; color: #f59e0b;">🪙 1500 仙石</div>
+                        <button class="btn-primary" style="padding: 4px 10px; font-size: 10px; margin-top: 4px;" onclick="buyItem('item_gourd', 1500)">购买</button>
+                    </div>
+                    <div class="card" style="align-items: center; text-align: center;">
+                        <div style="font-size: 28px;">🪢</div>
+                        <div style="font-size: 12px; font-weight: 800;">捆仙绳</div>
+                        <div style="font-size: 10px; color: #f59e0b;">🪙 3000 仙石</div>
+                        <button class="btn-primary" style="padding: 4px 10px; font-size: 10px; margin-top: 4px;" onclick="buyItem('item_rope', 3000)">购买</button>
+                    </div>
+                    <div class="card" style="align-items: center; text-align: center;">
+                        <div style="font-size: 28px;">🚩</div>
+                        <div style="font-size: 12px; font-weight: 800;">招妖神幡</div>
+                        <div style="font-size: 10px; color: #f59e0b;">💎 50 灵石</div>
+                        <button class="btn-primary btn-gold" style="padding: 4px 10px; font-size: 10px; margin-top: 4px;" onclick="showToast('绝品招妖神幡只可于副本爆出！')">兑换</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 5: GUILD (蜀山仙盟) -->
+        <div id="panel-guild" class="view-panel">
+            <div class="card">
+                <div class="card-title">⚔️ 蜀山仙盟</div>
+                <div style="font-size: 11px; color: #94a3b8;">当前仙盟等级: Lv.5 | 道友: 28/30</div>
+                <div style="background: rgba(30, 41, 59, 0.6); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                    <div>
+                        <div style="font-size: 12px; font-weight: 800;">👹 仙盟BOSS: 远古龙皇</div>
+                        <div style="font-size: 10px; color: #22c55e;">今日剩余斩妖次数: 3次</div>
+                    </div>
+                    <button class="btn-primary" style="padding: 6px 12px; font-size: 11px;" onclick="showToast('仙盟斩妖即将开放！')">挑战</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- IN-BATTLE GAME PANEL & CANVAS -->
+        <div id="panel-game" class="view-panel">
+            <!-- Battle Top Header -->
+            <div class="battle-top-bar">
+                <div class="battle-stage-title" id="battle-stage-name">🚩 1. 幽冥荒原</div>
+                <div class="battle-wave-text" id="battle-wave-indicator">波次: 1/5</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-primary" style="padding: 4px 8px; font-size: 10px;" onclick="openStatsModal()">📊 斩妖统计</button>
+                    <button class="btn-primary" style="padding: 4px 8px; font-size: 10px;" id="btn-speed-toggle" onclick="toggleGameSpeed()">⚡ x1</button>
+                </div>
+            </div>
+
+            <!-- Boss HP Top HUD -->
+            <div id="boss-hud" style="display: none; position: absolute; top: 48px; left: 12px; right: 12px; z-index: 15; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 8px; padding: 4px 8px;">
+                <div style="display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: #fca5a5;">
+                    <span id="boss-hud-name">👹 守关大妖：寻木青雀</span>
+                    <span id="boss-hud-hp-text">3000 / 3000</span>
+                </div>
+                <div style="width: 100%; height: 6px; background: #450a0a; border-radius: 3px; overflow: hidden; margin-top: 2px;">
+                    <div id="boss-hud-hp-fill" style="height: 100%; width: 100%; background: #ef4444; transition: width 0.2s;"></div>
+                </div>
+            </div>
+
+            <!-- Rampart Defense HP Bar -->
+            <div class="rampart-hp-box">
+                <span>🛡️ 护宗大阵</span>
+                <div class="rampart-hp-bar-bg"><div id="rampart-hp-fill" class="rampart-hp-bar-fill"></div></div>
+                <span id="rampart-hp-text">6000 / 6000</span>
+            </div>
+
+            <canvas id="gameCanvas"></canvas>
+
+            <!-- Bottom Catch UI Bar (BOSS衰弱·封印契机) -->
+            <div id="catch-bar" class="catch-bar">
+                <div class="catch-title">✨ BOSS已处于衰弱状态！请选择抓捕法宝：</div>
+                <div class="catch-tools-grid">
+                    <div class="tool-btn" onclick="attemptCatch('item_paper_talisman')">
+                        <span class="tool-icon">📜</span>
+                        <span class="tool-name">黄纸符</span>
+                        <span class="tool-rate" id="rate-paper">概率 20%</span>
+                    </div>
+                    <div class="tool-btn" onclick="attemptCatch('item_gourd')">
+                        <span class="tool-icon">🏺</span>
+                        <span class="tool-name">紫金葫芦</span>
+                        <span class="tool-rate" id="rate-gourd">概率 45%</span>
+                    </div>
+                    <div class="tool-btn" onclick="attemptCatch('item_rope')">
+                        <span class="tool-icon">🪢</span>
+                        <span class="tool-name">捆仙绳</span>
+                        <span class="tool-rate" id="rate-rope">概率 75%</span>
+                    </div>
+                    <div class="tool-btn" onclick="attemptCatch('item_god_banner')">
+                        <span class="tool-icon">🚩</span>
+                        <span class="tool-name">招妖神幡</span>
+                        <span class="tool-rate" id="rate-god">概率 100%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-Battle Bottom Control Bar -->
+            <div class="battle-bottom-bar">
+                <div style="font-size: 12px; font-weight: 800; color: #f59e0b; padding: 0 4px;">
+                    🪙 <span id="battle-gold-display">256</span>
+                </div>
+                <div class="battle-ctrl-btn" onclick="upgradeRampart()">
+                    <span>⚡ 强化仙阵</span>
+                    <span class="battle-ctrl-sub">🪙 <span id="upgrade-cost">200</span></span>
+                </div>
+                <div class="battle-ctrl-btn btn-king" onclick="upgradeKingTurret()">
+                    <span>👑 掌门阵眼 Rank</span>
+                    <span class="battle-ctrl-sub"><span id="king-rank-text">1/5</span></span>
+                </div>
+                <div class="battle-ctrl-btn btn-summon" onclick="summonHeroTurret()">
+                    <span>🎲 敕令御剑</span>
+                    <span class="battle-ctrl-sub">🪙 <span id="summon-cost">90</span></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation Tabs (5 Tabs) -->
+        <div class="tab-nav">
+            <button class="tab-btn" onclick="switchMainTab('shop')">
+                <span class="tab-icon">🛒</span><span>仙坊</span>
+            </button>
+            <button class="tab-btn" onclick="switchMainTab('hero')">
+                <span class="tab-icon">🛡️</span><span>仙尊</span>
+            </button>
+            <button class="tab-btn active" onclick="switchMainTab('hub')">
+                <span class="tab-icon">👑</span><span>主城</span>
+            </button>
+            <button class="tab-btn" onclick="switchMainTab('territory')">
+                <span class="tab-icon">🏰</span><span>洞府</span>
+            </button>
+            <button class="tab-btn" onclick="switchMainTab('guild')">
+                <span class="tab-icon">⚔️</span><span>仙盟</span>
+            </button>
+        </div>
+
+        <!-- SETTLEMENT MODAL - Image #4 Match -->
+        <div id="result-modal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="settle-header">
+                    <div class="settle-crown">👑</div>
+                    <div class="settle-title">斩妖大捷</div>
+                    <div class="settle-sub" id="settle-stage-info">第1章 幽冥荒原 | 护宗大阵剩余: 100% (新纪录)</div>
+                </div>
+
+                <!-- Damage Statistics Section -->
+                <div class="settle-section">
+                    <div class="settle-sec-title">◆ 斩妖输出统计</div>
+                    <div id="damage-stats-list" style="display: flex; flex-direction: column; gap: 5px;"></div>
+                </div>
+
+                <!-- Clear Rewards Section -->
+                <div class="settle-section">
+                    <div class="settle-sec-title">◆ 通关战利品 (吐纳效率 +142.98/h)</div>
+                    <div class="reward-grid" id="reward-cards-grid"></div>
+                </div>
+
+                <button class="btn-primary btn-gold" onclick="closeSettlementModal()" style="font-size: 14px; padding: 10px 0;">
+                    返回主城
+                </button>
+            </div>
+        </div>
+
+        <!-- REAL-TIME DAMAGE STATS MODAL -->
+        <div id="stats-modal" class="modal-overlay">
+            <div class="modal-card">
+                <div class="settle-header">
+                    <div class="settle-title" style="font-size: 16px; color: #38bdf8;">📊 实时斩妖输出统计</div>
+                </div>
+                <div class="settle-section">
+                    <div id="realtime-stats-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+                </div>
+                <button class="btn-primary" onclick="closeStatsModal()" style="padding: 8px 0;">关闭</button>
+            </div>
+        </div>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <!-- GAME LOGIC SCRIPT -->
+    <script>
+        // Global Game State
+        const state = {
+            user: { username: "蜀山掌门", level: 15, stamina: 51, maxStamina: 60, gold: 8800, combatPower: 12850 },
+            inventory: { item_paper_talisman: 15, item_gourd: 8, item_rope: 3, item_god_banner: 1, purgatory_core: 68, epic_ticket: 5, pet_shards: 18 },
+            equipments: [
+                { id: 'eq_1', name: '史诗·紫霄仙剑', icon: '🗡️', quality: 'epic', atk: 120, slot: 'weapon', lvl: 10 },
+                { id: 'eq_2', name: '帝品·八卦道袍', icon: '🥋', quality: 'emperor', hp: 800, slot: 'armor', lvl: 14 },
+                { id: 'eq_3', name: '神话·紫金仙冠', icon: '👑', quality: 'myth', atk: 200, slot: 'crown', lvl: 8 },
+                { id: 'eq_4', name: '仙品·阴阳乾坤戒', icon: '💍', quality: 'spirit', atk: 45, slot: 'ring', lvl: 12 }
+            ],
+            pets: [
+                { id: "pet_1", petName: "寻木青雀", icon: "🐦", quality: "epic" },
+                { id: "pet_2", petName: "金光欧皇羊驼", icon: "🦙", quality: "myth" }
+            ],
+            gameSpeed: 1,
+            isCombatActive: false,
+            currentStage: 1,
+            heroUpgradeLvl: 1,
+            kingRank: 1
+        };
+
+        // UI Toast Helper
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.innerText = msg;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 2200);
+        }
+
+        // Backend Sync
+        async function syncPlayerData() {
+            try {
+                const res = await fetch("http://127.0.0.1:3000/api/player/load", { method: "POST" });
+                const json = await res.json();
+                if (json.code === 200 && json.data) {
+                    if (json.data.userInfo) {
+                        state.user.gold = json.data.userInfo.gold || state.user.gold;
+                        state.user.combatPower = json.data.userInfo.combatPower || state.user.combatPower;
+                    }
+                    if (json.data.inventory) Object.assign(state.inventory, json.data.inventory);
+                    if (json.data.equipments) state.equipments = json.data.equipments;
+                    if (json.data.pets) state.pets = json.data.pets;
+                    updateUI();
+                }
+            } catch(e) {
+                console.log("Offline mode sync fallback");
+            }
+        }
+
+        function updateUI() {
+            document.getElementById("gold-display").innerText = state.user.gold;
+            document.getElementById("gem-display").innerText = "0";
+            document.getElementById("stamina-display").innerText = state.user.stamina + "/60";
+            document.getElementById("hub-power-display").innerText = state.user.combatPower.toLocaleString();
+            document.getElementById("hero-tab-power").innerText = state.user.combatPower.toLocaleString();
+            document.getElementById("pet-count-display").innerText = state.pets.length;
+            document.getElementById("craft-progress-text").innerText = (state.inventory.purgatory_core || 0) + " / 50";
+            const fillPct = Math.min(100, ((state.inventory.purgatory_core || 0) / 50) * 100);
+            document.getElementById("craft-progress-fill").style.width = fillPct + "%";
+
+            // Render Hero Inventory
+            renderHeroInventory();
+            renderPetsGrid();
+        }
+
+        // Tab Navigation
+        function switchMainTab(tabName) {
+            document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+            document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+            
+            const targetPanel = document.getElementById("panel-" + tabName);
+            if (targetPanel) targetPanel.classList.add("active");
+            
+            const btnIndex = { shop: 0, hero: 1, hub: 2, territory: 3, guild: 4 }[tabName];
+            const navBtns = document.querySelectorAll(".tab-btn");
+            if (navBtns && navBtns[btnIndex]) navBtns[btnIndex].classList.add("active");
+        }
+
+        function switchSubTab(btn) {
+            document.querySelectorAll(".sub-tab-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+        }
+
+        function renderHeroInventory() {
+            const grid = document.getElementById("equip-inventory-grid");
+            grid.innerHTML = "";
+            state.equipments.forEach(eq => {
+                const card = document.createElement("div");
+                card.className = "equip-card quality-" + (eq.quality || 'epic');
+                card.innerHTML = `
+                    <div class="equip-card-icon">${eq.icon || '🗡️'}</div>
+                    <div class="equip-card-info">
+                        <div class="equip-card-name">${eq.name}</div>
+                        <div class="equip-card-stat">攻击 +${eq.atk || 50}</div>
+                    </div>
+                    <span class="upgrade-arrow">🟢⬆️</span>
+                `;
+                card.onclick = () => showToast("已装备 " + eq.name);
+                grid.appendChild(card);
+            });
+        }
+
+        function renderPetsGrid() {
+            const grid = document.getElementById("pet-inventory-grid");
+            grid.innerHTML = "";
+            state.pets.forEach(pet => {
+                const item = document.createElement("div");
+                item.className = "card";
+                item.style.alignItems = "center";
+                item.style.padding = "8px";
+                item.innerHTML = `
+                    <div style="font-size:24px">${pet.icon || '🦊'}</div>
+                    <div style="font-size:11px; font-weight:800; margin-top:2px;">${pet.petName}</div>
+                    <div style="font-size:9px; color:#38bdf8;">${pet.quality === 'myth' ? '神话级灵宠' : '史诗级灵宠'}</div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function collectIdleRewards() {
+            const bonusGold = 150;
+            state.user.gold += bonusGold;
+            updateUI();
+            showToast("🧘 成功领取消纳吐纳收益: 仙石 +" + bonusGold + "！");
+        }
+
+        function exchangePetWithShards() {
+            if ((state.inventory.pet_shards || 0) < 10) {
+                showToast("❌ 灵兽精魄不足 10 个！");
+                return;
+            }
+            state.inventory.pet_shards -= 10;
+            const newPet = { id: "pet_" + Date.now(), petName: "紫金双翼虎", icon: "🐯", quality: "myth" };
+            state.pets.push(newPet);
+            updateUI();
+            showToast("🎉 成功使用 10 精魄兑换神话灵宠【紫金双翼虎】！");
+        }
+
+        function doSynthetic3in1() {
+            if (state.equipments.length < 3) {
+                showToast("❌ 装备数量不足3件，无法合成！");
+                return;
+            }
+            state.equipments.pop();
+            state.equipments.pop();
+            const newEq = { id: "eq_" + Date.now(), name: "神话·太乙诛仙剑", icon: "🗡️", quality: "myth", atk: 280 };
+            state.equipments.push(newEq);
+            updateUI();
+            showToast("✨ 三合一成功进阶【神话·太乙诛仙剑】！");
+        }
+
+        async function doGuaranteeCraft() {
+            if ((state.inventory.purgatory_core || 0) < 50) {
+                showToast("❌ 炼狱晶核不足 50 个！");
+                return;
+            }
+            try {
+                const res = await fetch("http://127.0.0.1:3000/api/forge/guarantee-craft", { method: "POST" });
+                const json = await res.json();
+                if (json.code === 200 && json.data) {
+                    state.inventory.purgatory_core = json.data.remainingCores;
+                    if (json.data.equipment) state.equipments.push(json.data.equipment);
+                    updateUI();
+                    showToast("🛡️ 50晶核保底炼制成功！获得了【" + json.data.equipment.name + "】！");
+                }
+            } catch(e) {
+                state.inventory.purgatory_core -= 50;
+                state.equipments.push({ id: "eq_" + Date.now(), name: "神话·昊天神镜", icon: "🪞", quality: "myth", atk: 350 });
+                updateUI();
+                showToast("🛡️ 50晶核保底炼制成功！获得了【神话·昊天神镜】！");
+            }
+        }
+
+        function buyItem(itemKey, cost) {
+            if (state.user.gold < cost) {
+                showToast("❌ 仙石不足！");
+                return;
+            }
+            state.user.gold -= cost;
+            state.inventory[itemKey] = (state.inventory[itemKey] || 0) + 1;
+            updateUI();
+            showToast("🛒 仙坊购买成功！");
+        }
+
+        // COMBAT SYSTEM (2D Canvas Engine)
+        let canvas, ctx;
+        let combatLoopId;
+        let rampartHp = 6000, maxRampartHp = 6000;
+        let currentWave = 1, totalWaves = 5;
+        let inBattleGold = 256;
+        let heroUpgradeCost = 200;
+        let heroSummonCost = 90;
+        let monsters = [];
+        let bullets = [];
+        let drops = [];
+        let heroes = [];
+        let boss = null;
+        let catchBossActive = false;
+        let damageStats = { swordMaster: 0, talismanMaster: 0, alchemist: 0, frostCultivator: 0, spiritFox: 0, arrayMaster: 0 };
+
+        function startCombatStage(stageId) {
+            state.currentStage = stageId;
+            totalWaves = stageId === 1 ? 5 : (stageId === 2 ? 8 : 12);
+            currentWave = 1;
+            rampartHp = 6000;
+            maxRampartHp = 6000;
+            inBattleGold = 256;
+            heroUpgradeCost = 200;
+            heroSummonCost = 90;
+            monsters = [];
+            bullets = [];
+            drops = [];
+            boss = null;
+            catchBossActive = false;
+            damageStats = { swordMaster: 0, talismanMaster: 0, alchemist: 0, frostCultivator: 0, spiritFox: 0, arrayMaster: 0 };
+
+            const stageNames = { 1: "1. 幽冥荒原 (普通)", 2: "2. 万妖沙场 (史诗)", 3: "3. 封妖秘境 (深渊)" };
+            document.getElementById("battle-stage-name").innerText = stageNames[stageId] || "1. 幽冥荒原";
+            document.getElementById("battle-gold-display").innerText = inBattleGold;
+            document.getElementById("catch-bar").classList.remove("active");
+            document.getElementById("boss-hud").style.display = "none";
+            document.getElementById("rampart-hp-fill").style.width = "100%";
+            document.getElementById("rampart-hp-text").innerText = "6000 / 6000";
+
+            switchMainTab("game");
+            initCanvas();
+            spawnWave(currentWave);
+            state.isCombatActive = true;
+            if (combatLoopId) cancelAnimationFrame(combatLoopId);
+            gameLoop();
+            showToast("⚔️ 进入副本：斩妖开始！");
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById("gameCanvas");
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            ctx = canvas.getContext("2d");
+
+            // Init 6 Xianxia Cultivator Turrets on rampart
+            const rampartY = canvas.height - 70;
+            const slotWidth = canvas.width / 6;
+            heroes = [
+                { type: "swordMaster", name: "剑修", icon: "🗡️", x: slotWidth * 0.5, y: rampartY, atk: 80, cd: 0, maxCd: 40 },
+                { type: "talismanMaster", name: "符修", icon: "⚡", x: slotWidth * 1.5, y: rampartY, atk: 65, cd: 0, maxCd: 50 },
+                { type: "alchemist", name: "丹修", icon: "🔥", x: slotWidth * 2.5, y: rampartY, atk: 110, cd: 0, maxCd: 80 },
+                { type: "frostCultivator", name: "冰修", icon: "🧊", x: slotWidth * 3.5, y: rampartY, atk: 45, cd: 0, maxCd: 60 },
+                { type: "spiritFox", name: "赤狐", icon: "🦊", x: slotWidth * 4.5, y: rampartY, atk: 75, cd: 0, maxCd: 45 },
+                { type: "arrayMaster", name: "阵修", icon: "🛡️", x: slotWidth * 5.5, y: rampartY, atk: 95, cd: 0, maxCd: 55 }
+            ];
+        }
+
+        function spawnWave(waveNum) {
+            document.getElementById("battle-wave-indicator").innerText = "波次: " + waveNum + "/" + totalWaves;
+            if (waveNum === totalWaves) {
+                spawnBoss();
+                return;
+            }
+            const count = 6 + waveNum * 3;
+            const monsterIcons = state.currentStage === 1 ? ["👹", "🐺", "🌲", "🦂"] : (state.currentStage === 2 ? ["🕷️", "💀", "🐗", "🗿"] : ["👿", "🐲", "👹"]);
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    if (!state.isCombatActive) return;
+                    monsters.push({
+                        id: Date.now() + Math.random(),
+                        icon: monsterIcons[Math.floor(Math.random() * monsterIcons.length)],
+                        x: 30 + Math.random() * (canvas.width - 60),
+                        y: -30,
+                        speed: 0.6 + Math.random() * 0.4,
+                        hp: 180 + waveNum * 60,
+                        maxHp: 180 + waveNum * 60,
+                        radius: 14
+                    });
+                }, i * 700);
+            }
+        }
+
+        function spawnBoss() {
+            const bossHp = state.currentStage === 1 ? 3000 : (state.currentStage === 2 ? 9000 : 25000);
+            const bossNames = { 1: "寻木青雀", 2: "机关木牛", 3: "太古鲲鹏" };
+            const bossIcons = { 1: "🐦", 2: "🐂", 3: "🦅" };
+            
+            boss = {
+                icon: bossIcons[state.currentStage] || "👹",
+                name: bossNames[state.currentStage] || "守关大妖",
+                x: canvas.width / 2,
+                y: -50,
+                speed: 0.3,
+                hp: bossHp,
+                maxHp: bossHp,
+                radius: 32,
+                isBoss: true
+            };
+            monsters.push(boss);
+            document.getElementById("boss-hud").style.display = "block";
+            document.getElementById("boss-hud-name").innerText = boss.icon + " 守关大妖：" + boss.name;
+            document.getElementById("boss-hud-hp-text").innerText = bossHp + " / " + bossHp;
+            document.getElementById("boss-hud-hp-fill").style.width = "100%";
+            showToast("⚠️ 守关大妖 【" + boss.name + "】 降临！");
+        }
+
+        function gameLoop() {
+            if (!state.isCombatActive) return;
+            const loops = state.gameSpeed;
+            for (let s = 0; s < loops; s++) {
+                updatePhysics();
+            }
+            renderCanvas();
+            combatLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function updatePhysics() {
+            const rampartY = canvas.height - 70;
+
+            // 1. Cultivator Turrets Firing Bullets
+            heroes.forEach(h => {
+                h.cd--;
+                if (h.cd <= 0 && monsters.length > 0) {
+                    let closest = null;
+                    let minDist = 9999;
+                    monsters.forEach(m => {
+                        const dist = Math.hypot(m.x - h.x, m.y - h.y);
+                        if (dist < minDist) { minDist = dist; closest = m; }
+                    });
+
+                    if (closest) {
+                        h.cd = h.maxCd;
+                        const angle = Math.atan2(closest.y - h.y, closest.x - h.x);
+                        const bulletIcons = {
+                            swordMaster: '🗡️',
+                            talismanMaster: '⚡',
+                            alchemist: '💥',
+                            frostCultivator: '🧊',
+                            spiritFox: '🔥',
+                            arrayMaster: '🛡️'
+                        };
+                        bullets.push({
+                            x: h.x, y: h.y,
+                            vx: Math.cos(angle) * 7.5,
+                            vy: Math.sin(angle) * 7.5,
+                            atk: h.atk,
+                            heroType: h.type,
+                            icon: bulletIcons[h.type] || '✨'
+                        });
+                    }
+                }
+            });
+
+            // 2. Update Bullets
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const b = bullets[i];
+                b.x += b.vx;
+                b.y += b.vy;
+
+                // Check collision with monsters
+                for (let j = monsters.length - 1; j >= 0; j--) {
+                    const m = monsters[j];
+                    if (Math.hypot(m.x - b.x, m.y - b.y) < m.radius + 8) {
+                        m.hp -= b.atk;
+                        damageStats[b.heroType] = (damageStats[b.heroType] || 0) + b.atk;
+
+                        // Alchemist Fire Splash Damage
+                        if (b.heroType === 'alchemist') {
+                            monsters.forEach(otherM => {
+                                if (otherM !== m && Math.hypot(otherM.x - b.x, otherM.y - b.y) < 50) {
+                                    otherM.hp -= b.atk * 0.5;
+                                }
+                            });
+                        }
+
+                        // Frost Cultivator Slow Effect
+                        if (b.heroType === 'frostCultivator') {
+                            m.speed = Math.max(0.2, m.speed * 0.85);
+                        }
+
+                        bullets.splice(i, 1);
+
+                        // Monster Death
+                        if (m.hp <= 0) {
+                            if (m.isBoss) {
+                                bossDefeated();
+                            } else {
+                                drops.push({ x: m.x, y: m.y, type: Math.random() > 0.4 ? 'gold' : 'equip', val: 30 });
+                                monsters.splice(j, 1);
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                // Out of screen
+                if (b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // 3. Update Monsters Movement & Line Breach
+            for (let i = monsters.length - 1; i >= 0; i--) {
+                const m = monsters[i];
+                m.y += m.speed;
+
+                // Check if monster reaches Rampart Defense Line
+                if (m.y >= rampartY) {
+                    rampartHp = Math.max(0, rampartHp - (m.isBoss ? 1500 : 300));
+                    document.getElementById("rampart-hp-text").innerText = rampartHp + " / " + maxRampartHp;
+                    document.getElementById("rampart-hp-fill").style.width = Math.max(0, (rampartHp / maxRampartHp) * 100) + "%";
+
+                    if (!m.isBoss) monsters.splice(i, 1);
+
+                    if (rampartHp <= 0) {
+                        triggerDefeat();
+                        return;
+                    }
+                }
+
+                // Update Boss HUD
+                if (m.isBoss) {
+                    const bossPct = Math.max(0, (m.hp / m.maxHp) * 100);
+                    document.getElementById("boss-hud-hp-text").innerText = Math.max(0, Math.ceil(m.hp)) + " / " + m.maxHp;
+                    document.getElementById("boss-hud-hp-fill").style.width = bossPct + "%";
+
+                    // Trigger Catch UI if Boss HP <= 30%
+                    if (bossPct <= 30 && !catchBossActive) {
+                        catchBossActive = true;
+                        document.getElementById("catch-bar").classList.add("active");
+                        showToast("✨ BOSS进入极度衰弱状态！底部法宝抓捕条已开启！");
+                    }
+                }
+            }
+
+            // 4. Auto-Magnet Drop Absorption
+            for (let i = drops.length - 1; i >= 0; i--) {
+                const d = drops[i];
+                const targetX = canvas.width / 2;
+                const targetY = rampartY;
+                const angle = Math.atan2(targetY - d.y, targetX - d.x);
+                d.x += Math.cos(angle) * 5;
+                d.y += Math.sin(angle) * 5;
+
+                if (Math.hypot(targetX - d.x, targetY - d.y) < 30) {
+                    if (d.type === 'gold') {
+                        inBattleGold += d.val;
+                        document.getElementById("battle-gold-display").innerText = inBattleGold;
+                    } else {
+                        showToast("🎁 自动吸收仙宝卷轴！");
+                    }
+                    drops.splice(i, 1);
+                }
+            }
+
+            // Check Wave Completion
+            if (monsters.length === 0 && !boss) {
+                if (currentWave < totalWaves) {
+                    currentWave++;
+                    spawnWave(currentWave);
+                } else {
+                    triggerVictory();
+                }
+            }
+        }
+
+        function renderCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Background Grid
+            ctx.fillStyle = "#090d16";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Path Grid Lines
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.08)";
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+            }
+
+            // Rampart Defense Line Wall
+            const rampartY = canvas.height - 70;
+            ctx.fillStyle = "#1e293b";
+            ctx.fillRect(0, rampartY + 15, canvas.width, 55);
+            ctx.strokeStyle = "#38bdf8"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, rampartY + 15); ctx.lineTo(canvas.width, rampartY + 15); ctx.stroke();
+
+            // Draw Cultivator Turrets
+            heroes.forEach(h => {
+                ctx.font = "24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(h.icon, h.x, h.y + 10);
+            });
+
+            // Draw Monsters
+            monsters.forEach(m => {
+                ctx.font = m.isBoss ? "42px sans-serif" : "24px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(m.icon, m.x, m.y);
+
+                // HP Bar above monster
+                const hpPct = Math.max(0, m.hp / m.maxHp);
+                const barWidth = m.isBoss ? 50 : 26;
+                ctx.fillStyle = "#0f172a";
+                ctx.fillRect(m.x - barWidth / 2, m.y - (m.isBoss ? 45 : 24), barWidth, 4);
+                ctx.fillStyle = m.isBoss ? "#ef4444" : "#22c55e";
+                ctx.fillRect(m.x - barWidth / 2, m.y - (m.isBoss ? 45 : 24), barWidth * hpPct, 4);
+            });
+
+            // Draw Bullets
+            bullets.forEach(b => {
+                ctx.font = "14px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(b.icon, b.x, b.y);
+            });
+
+            // Draw Drops
+            drops.forEach(d => {
+                ctx.font = "16px sans-serif";
+                ctx.textAlign = "center";
+                ctx.fillText(d.type === 'gold' ? '🪙' : '📜', d.x, d.y);
+            });
+        }
+
+        // In-Battle Actions
+        function toggleGameSpeed() {
+            state.gameSpeed = state.gameSpeed === 1 ? 2 : 1;
+            document.getElementById("btn-speed-toggle").innerText = "⚡ x" + state.gameSpeed;
+        }
+
+        function upgradeRampart() {
+            if (inBattleGold < heroUpgradeCost) {
+                showToast("❌ 仙石不足！");
+                return;
+            }
+            inBattleGold -= heroUpgradeCost;
+            heroUpgradeCost += 100;
+            heroes.forEach(h => h.atk += 30);
+            document.getElementById("battle-gold-display").innerText = inBattleGold;
+            document.getElementById("upgrade-cost").innerText = heroUpgradeCost;
+            showToast("⚡ 仙阵强化成功！全员攻击力 +30！");
+        }
+
+        function upgradeKingTurret() {
+            if (state.kingRank >= 5) {
+                showToast("👑 掌门阵眼 Rank 已达到最高等级！");
+                return;
+            }
+            state.kingRank++;
+            document.getElementById("king-rank-text").innerText = state.kingRank + "/5";
+            maxRampartHp += 1000;
+            rampartHp += 1000;
+            document.getElementById("rampart-hp-text").innerText = rampartHp + " / " + maxRampartHp;
+            showToast("👑 掌门阵眼 Rank 突破！护宗大阵血量上限 +1000！");
+        }
+
+        function summonHeroTurret() {
+            if (inBattleGold < heroSummonCost) {
+                showToast("❌ 仙石不足！");
+                return;
+            }
+            inBattleGold -= heroSummonCost;
+            heroSummonCost += 50;
+            heroes.forEach(h => h.maxCd = Math.max(15, h.maxCd - 5));
+            document.getElementById("battle-gold-display").innerText = inBattleGold;
+            document.getElementById("summon-cost").innerText = heroSummonCost;
+            showToast("🎲 敕令御剑！全员攻击频率提升 15%！");
+        }
+
+        // Boss Catch Mechanism
+        async function attemptCatch(itemKey) {
+            if (!boss) return;
+            const bossHpPct = boss.hp / boss.maxHp;
+            try {
+                const res = await fetch("http://127.0.0.1:3000/api/combat/catch-boss", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ itemKey, bossHpPercent: bossHpPct })
+                });
+                const json = await res.json();
+                if (json.code === 200 && json.data.success) {
+                    if (json.data.capturedPet) state.pets.push(json.data.capturedPet);
+                    showToast("🎉 恭喜！成功使用法宝抓捕灵宠【" + json.data.capturedPet.petName + "】！");
+                    bossDefeated();
+                } else if (json.data && !json.data.success) {
+                    showToast("⚠️ 抓捕失败！保底获得【灵兽精魄 x3】！");
+                    bossDefeated();
+                } else {
+                    showToast(json.message || "抓捕条件未满足");
+                }
+            } catch(e) {
+                showToast("🎉 离线抓捕成功！收服大妖【赤焰九尾狐】！");
+                state.pets.push({ id: "pet_" + Date.now(), petName: "赤焰九尾狐", icon: "🦊", quality: "myth" });
+                bossDefeated();
+            }
+        }
+
+        function bossDefeated() {
+            boss = null;
+            document.getElementById("boss-hud").style.display = "none";
+            document.getElementById("catch-bar").classList.remove("active");
+            triggerVictory();
+        }
+
+        function triggerVictory() {
+            state.isCombatActive = false;
+            state.user.gold += 880;
+            
+            // Sync victory with backend
+            fetch("http://127.0.0.1:3000/api/combat/stage-clear", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ stageId: state.currentStage, goldEarned: 880, equipsEarned: ["史诗·紫霄仙剑"] })
+            }).catch(() => {});
+
+            showVictoryModal();
+        }
+
+        function triggerDefeat() {
+            state.isCombatActive = false;
+            showToast("💀 护宗大阵失守！斩妖失败");
+            setTimeout(() => switchMainTab("hub"), 1500);
+        }
+
+        // Victory Settlement Modal Rendering (Image #4 Match)
+        function showVictoryModal() {
+            const modal = document.getElementById("result-modal");
+            const stageNames = { 1: "第1章 幽冥荒原", 2: "第2章 万妖沙场", 3: "第3章 封妖秘境" };
+            document.getElementById("settle-stage-info").innerText = (stageNames[state.currentStage] || "第1章 幽冥荒原") + " | 护宗大阵剩余: " + Math.ceil((rampartHp/maxRampartHp)*100) + "% (新纪录)";
+
+            // Calculate damage output stats for 6 Xianxia turrets
+            const statsList = document.getElementById("damage-stats-list");
+            statsList.innerHTML = "";
+            
+            const totalDmg = Object.values(damageStats).reduce((a,b)=>a+b, 0) || 1;
+            const heroConfig = [
+                { type: 'swordMaster', name: '剑修·万剑归宗', icon: '🗡️' },
+                { type: 'talismanMaster', name: '符修·紫霄神雷', icon: '⚡' },
+                { type: 'alchemist', name: '丹修·离火真焰', icon: '🔥' },
+                { type: 'frostCultivator', name: '冰修·九幽寒霜', icon: '🧊' },
+                { type: 'spiritFox', name: '灵兽·赤焰天狐', icon: '🦊' },
+                { type: 'arrayMaster', name: '阵修·昊天剑阵', icon: '🛡️' }
+            ];
+
+            let maxHero = 'swordMaster', maxDmg = 0;
+            heroConfig.forEach(h => {
+                const dmg = damageStats[h.type] || 0;
+                if (dmg > maxDmg) { maxDmg = dmg; maxHero = h.type; }
+            });
+            if (maxDmg === 0) maxHero = 'swordMaster';
+
+            heroConfig.forEach(h => {
+                const dmg = damageStats[h.type] || Math.floor(Math.random() * 2000 + 500);
+                const pct = Math.min(100, Math.round((dmg / totalDmg) * 100));
+                const isMvp = (h.type === maxHero);
+                
+                const row = document.createElement("div");
+                row.className = "damage-bar-row";
+                row.innerHTML = `
+                    <div class="damage-hero-label">
+                        <span>${h.icon}</span><span>${h.name.split('·')[0]}</span>
+                        ${isMvp ? '<span class="mvp-badge">MVP</span>' : ''}
+                    </div>
+                    <div class="damage-bar-track">
+                        <div class="damage-bar-fill" style="width: ${pct}%"></div>
+                    </div>
+                    <div class="damage-val-text">${(dmg > 1000 ? (dmg/1000).toFixed(1) + 'K' : dmg)}</div>
+                `;
+                statsList.appendChild(row);
+            });
+
+            // Reward Cards
+            const rewardGrid = document.getElementById("reward-cards-grid");
+            rewardGrid.innerHTML = `
+                <div class="reward-item-box"><div class="reward-item-icon">🪙</div><div class="reward-item-name">+880仙石</div></div>
+                <div class="reward-item-box"><div class="reward-item-icon">📜</div><div class="reward-item-name">试炼券x1</div></div>
+                <div class="reward-item-box"><div class="reward-item-icon">🗡️</div><div class="reward-item-name">紫霄仙剑</div></div>
+                <div class="reward-item-box"><div class="reward-item-icon">🧩</div><div class="reward-item-name">精魄x3</div></div>
+            `;
+
+            modal.classList.add("active");
+        }
+
+        function closeSettlementModal() {
+            document.getElementById("result-modal").classList.remove("active");
+            switchMainTab("hub");
+            updateUI();
+        }
+
+        // Real-time Stats Modal Functionality
+        function openStatsModal() {
+            const list = document.getElementById("realtime-stats-list");
+            list.innerHTML = "";
+            const totalDmg = Object.values(damageStats).reduce((a,b)=>a+b, 0) || 1;
+            const heroConfig = [
+                { type: 'swordMaster', name: '剑修·万剑归宗', icon: '🗡️' },
+                { type: 'talismanMaster', name: '符修·紫霄神雷', icon: '⚡' },
+                { type: 'alchemist', name: '丹修·离火真焰', icon: '🔥' },
+                { type: 'frostCultivator', name: '冰修·九幽寒霜', icon: '🧊' },
+                { type: 'spiritFox', name: '灵兽·赤焰天狐', icon: '🦊' },
+                { type: 'arrayMaster', name: '阵修·昊天剑阵', icon: '🛡️' }
+            ];
+
+            heroConfig.forEach(h => {
+                const dmg = damageStats[h.type] || 0;
+                const pct = Math.round((dmg / totalDmg) * 100);
+                const row = document.createElement("div");
+                row.className = "damage-bar-row";
+                row.innerHTML = `
+                    <div class="damage-hero-label"><span>${h.icon}</span><span>${h.name.split('·')[0]}</span></div>
+                    <div class="damage-bar-track"><div class="damage-bar-fill" style="width: ${pct}%"></div></div>
+                    <div class="damage-val-text">${dmg}</div>
+                `;
+                list.appendChild(row);
+            });
+
+            document.getElementById("stats-modal").classList.add("active");
+        }
+
+        function closeStatsModal() {
+            document.getElementById("stats-modal").classList.remove("active");
+        }
+
+        // Init on page load
+        window.addEventListener("DOMContentLoaded", () => {
+            syncPlayerData();
+        });
+    </script>
+</body>
+</html>

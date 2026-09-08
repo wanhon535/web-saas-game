@@ -1,0 +1,36 @@
+{
+  "pets": [
+    {
+      "id": "pet_fox_01",
+      "name": "九尾天狐",
+      "element": "ice",
+      "quality": "epic",
+      "catchBaseRate": 0.35,
+      "passiveBuff": {
+        "atkBoost": 0.15,
+        "critRateBoost": 0.08
+      }
+    },
+    {
+      "id": "pet_bird_01",
+      "name": "寻木青雀",
+      "element": "wood",
+      "quality": "common",
+      "catchBaseRate": 0.65,
+      "passiveBuff": {
+        "speedBoost": 0.1
+      }
+    },
+    {
+      "id": "pet_dragon_01",
+      "name": "太古鲲鹏",
+      "element": "thunder",
+      "quality": "myth",
+      "catchBaseRate": 0.1,
+      "passiveBuff": {
+        "atkBoost": 0.3,
+        "critRateBoost": 0.2
+      }
+    }
+  ]
+}
