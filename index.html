@@ -88,22 +88,25 @@
               <strong>剑意 <span id="powerValue">126</span></strong>
             </div>
           </section>
+          <section class="paper-card material-card">
+            <div class="material-copy">
+              <span class="material-icon">⛓️</span>
+              <div><b>剑胚残铁</b><small>普通关稳定产出，用于后续祭炼与打造。</small></div>
+            </div>
+            <strong id="swordIronValue">0</strong>
+          </section>
           <section class="paper-card equip-layout">
             <div class="equip-slots">
-              <div>🗡️<small id="weaponName">青霄飞剑 +1</small></div>
-              <div>🪬<small>镇妖符</small></div>
-              <div>＋<small>未获法器</small></div>
-              <div>＋<small>未获法器</small></div>
+              <div class="gear-slot fixed-slot">🗡️<small id="weaponName">青霄飞剑 +1</small></div>
+              <div id="gearSlots" class="gear-slot-list"></div>
             </div>
             <div class="stats">
-              <p>飞剑伤害 <b id="damageValue">16</b></p>
-              <p>
-                御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b>
-              </p>
+              <p>飞剑伤害 <b><span id="damageValue">16</span><small>基础 <span id="baseDamageValue">16</span></small></b></p>
+              <p>护阵上限 <b id="wallMaxValue">1200</b></p>
+              <p>仙石结算 <b id="goldBonusValue">+0%</b></p>
+              <p>御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b></p>
               <p>飞剑数量 <b>1</b></p>
-              <p>
-                吸附范围 <b><span id="magnetRange">380</span></b>
-              </p>
+              <p>吸附范围 <b><span id="magnetRange">380</span></b></p>
               <button class="gold-btn" data-action="upgrade">
                 祭炼飞剑<small
                   >消耗 <span id="upgradeCost">480</span> 仙石</small
@@ -112,7 +115,12 @@
             </div>
           </section>
           <section class="paper-card">
-            <h3>宗门宝库 · 本期掉落</h3>
+            <h3>已获法器</h3>
+            <p class="card-note">固定属性立即计入试炼；同一栏位只能穿戴一件。</p>
+            <div id="gearInventory" class="gear-inventory"></div>
+          </section>
+          <section class="paper-card">
+            <h3>宗门宝库 · 其余收获</h3>
             <div id="bag" class="bag"></div>
           </section>
         </main>

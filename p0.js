@@ -47,6 +47,41 @@
   }
   migrateP1();
   if (P.pet) P.tutorialCaptureDone = true;
+  function gearById(id) {
+    return globalThis.P1_CONFIG?.gear?.[id] || null;
+  }
+  function gearInSlot(slot) {
+    const gear = gearById(P.equippedGear?.[slot]);
+    return gear && gear.slot === slot && P.ownedGear.includes(gear.id) ? gear : null;
+  }
+  function equipmentStats() {
+    return ["bracer", "robe", "jade"].reduce(
+      (total, slot) => {
+        const stats = gearInSlot(slot)?.stats || {};
+        total.damage += stats.damage || 0;
+        total.wallHp += stats.wallHp || 0;
+        total.goldBonus += stats.goldBonus || 0;
+        return total;
+      },
+      { damage: 0, wallHp: 0, goldBonus: 0 },
+    );
+  }
+  function effectiveWeaponDamage() {
+    return P.weaponDamage + equipmentStats().damage;
+  }
+  function effectiveWallMaxHp() {
+    return 1200 + equipmentStats().wallHp;
+  }
+  function applyGoldBonus(amount) {
+    return Math.floor(amount * (1 + equipmentStats().goldBonus));
+  }
+  function currentPower() {
+    const stats = equipmentStats();
+    return 110 + P.weaponLevel * 16 + stats.damage * 3 + Math.round(stats.wallHp / 10) + Math.round(stats.goldBonus * 100);
+  }
+  Object.keys(P.equippedGear).forEach((slot) => {
+    if (!gearInSlot(slot)) P.equippedGear[slot] = null;
+  });
   const $ = (id) => document.getElementById(id),
     fmt = (n) => Math.floor(n).toLocaleString("zh-CN");
   let timer, canvas, ctx;
@@ -192,7 +227,39 @@
     save();
     renderChapterMap();
   }
+  function renderGearSlots() {
+    const target = $("gearSlots");
+    if (!target) return;
+    const labels = { bracer: "护腕", robe: "法衣", jade: "玉佩" };
+    target.innerHTML = ["bracer", "robe", "jade"]
+      .map((slot) => {
+        const gear = gearInSlot(slot);
+        return gear
+          ? `<button class="gear-slot equipped" data-action="unequip-gear" data-slot="${slot}" title="点击卸下">${gear.icon}<small>${labels[slot]} · ${gear.name}</small><em>卸下</em></button>`
+          : `<div class="gear-slot empty-gear">＋<small>${labels[slot]} · 未穿戴</small></div>`;
+      })
+      .join("");
+  }
+  function renderGearInventory() {
+    const target = $("gearInventory");
+    if (!target) return;
+    const owned = P.ownedGear.map(gearById).filter(Boolean);
+    target.innerHTML = owned.length
+      ? owned
+          .map((gear) => {
+            const equipped = gearInSlot(gear.slot)?.id === gear.id;
+            const stats = gear.stats.damage
+              ? `飞剑伤害 +${gear.stats.damage}`
+              : gear.stats.wallHp
+                ? `护阵上限 +${gear.stats.wallHp}`
+                : `仙石结算 +${Math.round(gear.stats.goldBonus * 100)}%`;
+            return `<article class="gear-card ${equipped ? "equipped" : ""}"><i>${gear.icon}</i><div><b>${gear.name}</b><small>${gear.rarity} · ${stats}</small><p>${gear.description}</p></div><button class="small-btn" data-action="${equipped ? "unequip-gear" : "equip-gear"}" data-${equipped ? "slot" : "gear-id"}="${equipped ? gear.slot : gear.id}">${equipped ? "卸下" : "穿戴"}</button></article>`;
+          })
+          .join("")
+      : '<div class="gear-empty">尚未获得法器。首通 1-02 可获得荒原护腕。</div>';
+  }
   function profile() {
+    const stats = equipmentStats();
     document
       .querySelectorAll(".gold-value")
       .forEach((x) => (x.textContent = fmt(P.gold)));
@@ -200,16 +267,24 @@
     $("gourdTop").textContent = P.gourds;
     $("gourdPet").textContent = P.gourds;
     $("gourdCatchCount").textContent = P.gourds;
-    $("damageValue").textContent = P.weaponDamage;
+    $("damageValue").textContent = effectiveWeaponDamage();
+    $("baseDamageValue").textContent = P.weaponDamage;
+    $("wallMaxValue").textContent = effectiveWallMaxHp();
+    $("goldBonusValue").textContent = `+${Math.round(stats.goldBonus * 100)}%`;
+    $("swordIronValue").textContent = P.materials.swordIron;
     $("attackInterval").textContent = ATTACK_INTERVAL.toFixed(2);
     $("magnetRange").textContent = MAGNET_RANGE;
     $("weaponName").textContent = `青霄飞剑 +${P.weaponLevel}`;
-    $("powerValue").textContent = 110 + P.weaponLevel * 16;
+    $("powerValue").textContent = currentPower();
     $("upgradeCost").textContent = 300 + P.weaponLevel * 180;
+    renderGearSlots();
+    renderGearInventory();
     let b = $("bag");
     b.innerHTML = "";
     let its = [
-      ...P.equipment.map((x) => ({ i: x.split(" ")[0], n: x.split(" ")[1] })),
+      ...P.equipment
+        .filter((x) => !Object.values(globalThis.P1_CONFIG?.gear || {}).some((gear) => x === `${gear.icon} ${gear.name}`))
+        .map((x) => ({ i: x.split(" ")[0], n: x.split(" ")[1] })),
       ...Array(8).fill(null),
     ];
     its.slice(0, 10).forEach((x) => {
@@ -329,6 +404,30 @@
       ? "狂暴 · 寻木青雀"
       : "守关大妖 · 寻木青雀";
   }
+  function equipGear(id) {
+    const gear = gearById(id);
+    if (!gear || !P.ownedGear.includes(id)) {
+      toast("尚未获得这件法器");
+      return false;
+    }
+    P.equippedGear[gear.slot] = gear.id;
+    save();
+    profile();
+    toast(`已穿戴「${gear.name}」`);
+    return true;
+  }
+  function unequipGear(slot) {
+    const gear = gearInSlot(slot);
+    if (!gear) {
+      toast("该栏位当前未穿戴法器");
+      return false;
+    }
+    P.equippedGear[slot] = null;
+    save();
+    profile();
+    toast(`已卸下「${gear.name}」`);
+    return true;
+  }
   function start(stageId = selectedStageId) {
     const stage = stageById(stageId);
     if (stage && !isStageUnlocked(stage) && stage.type === "normal") {
@@ -347,7 +446,7 @@
     B.enemies = [];
     B.swords = [];
     B.drops = [];
-    B.maxHp = 1200;
+    B.maxHp = effectiveWallMaxHp();
     B.hp = B.maxHp;
     B.gold = 0;
     B.damage = 0;
@@ -468,7 +567,7 @@
       x: B.player.x,
       y: B.player.y - 22,
       target: t,
-      damage: P.weaponDamage,
+      damage: effectiveWeaponDamage(),
       speed: 390,
       life: 1.5,
     });
@@ -612,9 +711,10 @@
     B.running = false;
     $("catchPanel").classList.remove("show");
     const normalRewards = B.isNormalStage ? applyNormalStageRewards(win) : null;
-    let earned =
+    let baseEarned =
       B.gold + (B.isNormalStage ? normalRewards.gold : win ? 80 : 20);
-    if (win && !B.isNormalStage && B.outcome === "狂暴后斩杀") earned += 40;
+    if (win && !B.isNormalStage && B.outcome === "狂暴后斩杀") baseEarned += 40;
+    let earned = applyGoldBonus(baseEarned);
     P.gold += earned;
     if (win && !B.isNormalStage && !P.equipment.includes("🗡️ 荒原剑胚"))
       P.equipment.push("🗡️ 荒原剑胚");
@@ -968,6 +1068,8 @@
     if (a === "select-stage") selectStage(b.dataset.stageId);
     if (a === "toast") toast(b.dataset.text);
     if (a === "upgrade") upgrade();
+    if (a === "equip-gear") equipGear(b.dataset.gearId);
+    if (a === "unequip-gear") unequipGear(b.dataset.slot);
     if (a === "pause") {
       B.paused = !B.paused;
       b.textContent = B.paused ? "▶" : "Ⅱ";
