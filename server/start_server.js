@@ -9,7 +9,8 @@ const files = {
   '/': 'index.html',
   '/index.html': 'index.html',
   '/p0.css': 'p0.css',
-  '/p0.js': 'p0.js'
+  '/p0.js': 'p0.js',
+  '/p1-data.js': 'p1-data.js'
 };
 
 const mimeTypes = {
@@ -51,6 +52,6 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log('《修仙御兽：万剑封妖》P0 试玩服务已启动');
+  console.log('《修仙御兽：万剑封妖》客户端试玩服务已启动');
   console.log(`打开浏览器访问：http://127.0.0.1:${PORT}/`);
 });
