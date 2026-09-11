@@ -61,7 +61,8 @@ http://127.0.0.1:3000/
 ├─ server/
 │  └─ start_server.js               # 本地静态试玩服务
 ├─ tests/
-│  ├─ p0-regression-check.js        # 抓捕、存档与狂暴分支回归检查`n│  └─ p1-chapter-progression-check.js # 关卡推进、奖励与解锁回归检查
+│  ├─ p0-regression-check.js        # 抓捕、存档与狂暴分支回归检查
+│  └─ p1-chapter-progression-check.js # 关卡推进、奖励与解锁回归检查
 ├─ docs/
 │  ├─ 01_P0_产品与开发基线.md        # P0 唯一有效需求
 │  ├─ 02_P0_数值与产出配置说明.md    # P0 数值解释基线
@@ -105,6 +106,7 @@ P0 第一章 Boss 基础闭环已稳定，并已通过首次结契、旧存档�
 
 ```powershell
 node .\tests\p0-regression-check.js
+node .\tests\p1-chapter-progression-check.js
 ```
 
 当前自动回归共覆盖 **35 项关键断言**：P0 抓捕/存档 19 项，P1 第一章推进/奖励/解锁 16 项；不以单局随机结果替代验收。
