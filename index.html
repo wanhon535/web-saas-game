@@ -9,11 +9,10 @@
 <body>
 <div id="app">
   <section id="home" class="screen active">
-    <header class="topbar"><div class="identity"><div class="avatar">🧙</div><div><b>蜀山掌门</b><small>金丹初期 · Lv.15</small></div></div><div class="resources"><div class="resource">🪙 <span id="goldTop">8800</span></div><div class="resource">🍶 <span id="gourdTop">3</span></div></div></header>
+    <header class="topbar"><div class="identity"><div class="avatar">☯</div><div><b>万剑真君</b><small>天衍剑宗 · 末代宗主</small></div></div><div class="resources"><div class="resource">🪙 <span id="goldTop">8800</span></div><div class="resource">🍶 <span id="gourdTop">3</span></div></div></header>
     <main class="home-scroll">
-      <div class="shortcut-row"><button class="short-btn" data-action="toast" data-text="洞府蕴养将在后续版本开放">⛩️<small>洞府</small></button><button class="short-btn" data-action="toast" data-text="本期只开放幽冥荒原普通副本">📜<small>试炼</small></button><button class="short-btn" data-action="toast" data-text="商城与公会不属于 P0">✦<small>仙市</small></button></div>
       <section class="chapter-card"><div class="mist"></div><div class="chapter-heading"><small>第一章 · 普通试炼</small><h1>幽 冥 荒 原</h1><p>妖气冲霄，唯万剑可封</p></div><div class="boss-sigil">🦅</div><div class="boss-label">守关大妖 · 寻木青雀<small>击退或收服，皆有机缘</small></div><div class="trail"></div><div class="stage-node lock one">1<b>荒原入口</b></div><div class="stage-node open">2<b>寻木巢穴</b></div><div class="stage-node lock three">🔒<b>后续开启</b></div></section>
-      <section class="formation"><b>出战：万剑真君</b><div class="mini-pet" id="formationPet">🦊</div><span>单角色守线 · 初始一柄飞剑</span></section>
+      <section class="formation"><b>出战：万剑真君</b><div class="mini-pet" id="formationPet">✦</div><span id="formationState">未结契灵宠 · 初始一柄飞剑</span></section>
       <button class="start-btn" data-action="start">✦ 踏 入 荒 原 ✦<small>守住护宗大阵，完成首期 P0 闭环</small></button>
       <p class="p0-note"><b>P0 目标：</b>小妖波次 → 寻木青雀 → 抓捕 / 狂暴击杀 → 自动拾取 → 结算 → 法器成长 → 再战。</p>
     </main>
@@ -21,8 +20,8 @@
   </section>
 
   <section id="equip" class="screen sub-screen">
-    <header class="topbar"><div class="identity"><div class="avatar">🧙</div><div><b>万剑真君</b><small>本命飞剑 · 可成长</small></div></div><div class="resources"><div class="resource">🪙 <span class="gold-value">8800</span></div></div></header>
-    <main class="page-body"><h1 class="page-title">法宝仙匣</h1><p class="page-subtitle">以剑镇妖，以宝护道</p><section class="hero-card"><div class="hero-art">🧙</div><div><h2>万剑真君</h2><p>独守荒原，以一剑破万妖。</p><strong>剑意 <span id="powerValue">126</span></strong></div></section><section class="paper-card equip-layout"><div class="equip-slots"><div>🗡️<small id="weaponName">青霄飞剑 +1</small></div><div>🪬<small>镇妖符</small></div><div>🧿<small>护心镜</small></div><div>👢<small>云履</small></div></div><div class="stats"><p>飞剑伤害 <b id="damageValue">16</b></p><p>御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b></p><p>飞剑数量 <b>1</b></p><p>吸附范围 <b><span id="magnetRange">380</span></b></p><button class="gold-btn" data-action="upgrade">祭炼飞剑<small>消耗 <span id="upgradeCost">480</span> 仙石</small></button></div></section><section class="paper-card"><h3>宗门宝库 · 本期掉落</h3><div id="bag" class="bag"></div></section></main>
+    <header class="topbar"><div class="identity"><div class="avatar">☯</div><div><b>万剑真君</b><small>本命飞剑 · 可成长</small></div></div><div class="resources"><div class="resource">🪙 <span class="gold-value">8800</span></div></div></header>
+    <main class="page-body"><h1 class="page-title">法宝仙匣</h1><p class="page-subtitle">以剑镇妖，以宝护道</p><section class="hero-card"><div class="hero-art">仙</div><div><h2>万剑真君</h2><p>独守荒原，以一剑破万妖。</p><strong>剑意 <span id="powerValue">126</span></strong></div></section><section class="paper-card equip-layout"><div class="equip-slots"><div>🗡️<small id="weaponName">青霄飞剑 +1</small></div><div>🪬<small>镇妖符</small></div><div>＋<small>未获法器</small></div><div>＋<small>未获法器</small></div></div><div class="stats"><p>飞剑伤害 <b id="damageValue">16</b></p><p>御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b></p><p>飞剑数量 <b>1</b></p><p>吸附范围 <b><span id="magnetRange">380</span></b></p><button class="gold-btn" data-action="upgrade">祭炼飞剑<small>消耗 <span id="upgradeCost">480</span> 仙石</small></button></div></section><section class="paper-card"><h3>宗门宝库 · 本期掉落</h3><div id="bag" class="bag"></div></section></main>
     <nav class="tabbar"><button class="tab" data-nav="home">⛩️<small>荒原</small></button><button class="tab active" data-nav="equip">⚔️<small>法宝</small></button><button class="tab" data-nav="pet">🦊<small>灵宠</small></button></nav>
   </section>
 
@@ -34,9 +33,8 @@
 
   <section id="battle" class="screen"><canvas id="canvas"></canvas><div class="battle-head"><button data-action="pause" class="pause">Ⅱ</button><h2>第一章 · 幽冥荒原</h2><p id="waveText">第 1 波 · 妖气初现</p></div><div id="bossHud" class="boss-hud"><span id="bossName">守关大妖 · 寻木青雀</span><b id="bossHpText">320 / 320</b><div class="bar"><i id="bossHpBar"></i></div></div><div id="battleMsg" class="battle-msg"></div><div id="catchPanel" class="catch-panel"><b>妖气衰竭，可祭镇妖葫芦！</b><p>失败后首领狂暴、回血；击杀狂暴大妖将多掉一件法器。</p><div><button data-action="catch" data-tool="seal">🪬 镇妖符<br><small>30%</small></button><button data-action="catch" data-tool="gourd">🍶 镇妖葫芦<br><small><span id="gourdCatchCount">3</span> 个 · 65%</small></button><button data-action="decline-catch" class="decline-catch">⚔️ 继续诛灭<br><small>不消耗道具</small></button></div></div><div class="battle-bottom"><div class="wall"><span>🏯</span><div><b>护宗大阵 <i id="wallHpText">1200 / 1200</i></b><div class="bar green"><i id="wallHpBar"></i></div></div></div><div class="battle-info"><button data-action="hint">🗡️ 自动御剑<small>初始 1 柄 · 0.85 秒</small></button><b>本局仙石<span id="runGold">0</span></b><button data-action="hint">🧭 移动阵眼<small>拖动主角 / 方向键</small></button></div></div></section>
 
-  <section id="result" class="screen"><main class="result-body"><div class="result-banner"><span>☯</span><h1 id="resultTitle">斩妖大捷</h1><p>第一章 · 幽冥荒原</p></div><p id="resultSub" class="result-sub">万剑归鞘，荒原妖气暂息。</p><section class="result-card"><h3>镇妖战报</h3><p>护宗大阵 <b id="resultWall">100%</b></p><p>御剑总伤害 <b id="resultDamage">0</b></p><p>首领结局 <b id="resultBoss">已斩</b></p></section><section class="result-card"><h3>本次所得</h3><div id="rewards" class="rewards"></div></section><button class="gold-btn return" data-action="back-home">返回洞府</button></main></section>
+  <section id="result" class="screen"><main class="result-body"><div class="result-banner"><span>☯</span><h1 id="resultTitle">斩妖大捷</h1><p>第一章 · 幽冥荒原</p></div><p id="resultSub" class="result-sub">万剑归鞘，荒原妖气暂息。</p><section class="result-card"><h3>镇妖战报</h3><p>护宗大阵 <b id="resultWall">100%</b></p><p>御剑总伤害 <b id="resultDamage">0</b></p><p>首领结局 <b id="resultBoss">已斩</b></p></section><section class="result-card"><h3>本次所得</h3><div id="rewards" class="rewards"></div></section><button class="gold-btn return" data-action="back-home">返回荒原入口</button></main></section>
   <div id="toast" class="toast"></div>
 </div>
 <script src="p0.js"></script>
 </body></html>
-
