@@ -6,6 +6,7 @@
       materials: { swordIron: 0 },
       ownedGear: [],
       equippedGear: { bracer: null, robe: null, jade: null },
+      equipmentTutorial: { firstGearReceived: false, firstGearEquipped: false },
     },
     D = {
       gold: 8800,
@@ -18,14 +19,19 @@
       tutorialCaptureDone: false,
       ...P1_DEFAULT,
     };
-  let P = { ...D };
+  let P = { ...D },
+    storedData = {};
   try {
-    P = { ...D, ...JSON.parse(localStorage.getItem(KEY) || "{}") };
+    storedData = JSON.parse(localStorage.getItem(KEY) || "{}");
+    P = { ...D, ...storedData };
   } catch (e) {}
   function migrateP1() {
     let c = P.chapterProgress || {},
       m = P.materials || {},
-      e = P.equippedGear || {};
+      e = P.equippedGear || {},
+      t = P.equipmentTutorial || {},
+      storedTutorial = storedData.equipmentTutorial || {},
+      hasTutorialField = (field) => Object.prototype.hasOwnProperty.call(storedTutorial, field);
     P.schemaVersion = 4;
     P.chapterProgress = {
       currentStage:
@@ -43,6 +49,14 @@
       bracer: typeof e.bracer === "string" ? e.bracer : null,
       robe: typeof e.robe === "string" ? e.robe : null,
       jade: typeof e.jade === "string" ? e.jade : null,
+    };
+    P.equipmentTutorial = {
+      firstGearReceived: hasTutorialField("firstGearReceived")
+        ? Boolean(t.firstGearReceived)
+        : P.ownedGear.length > 0,
+      firstGearEquipped: hasTutorialField("firstGearEquipped")
+        ? Boolean(t.firstGearEquipped)
+        : false,
     };
   }
   migrateP1();
@@ -82,6 +96,9 @@
   Object.keys(P.equippedGear).forEach((slot) => {
     if (!gearInSlot(slot)) P.equippedGear[slot] = null;
   });
+  if (Object.values(P.equippedGear).some(Boolean)) {
+    P.equipmentTutorial.firstGearEquipped = true;
+  }
   const $ = (id) => document.getElementById(id),
     fmt = (n) => Math.floor(n).toLocaleString("zh-CN");
   let timer, canvas, ctx;
@@ -240,6 +257,28 @@
       })
       .join("");
   }
+  function gearStatLabel(gear) {
+    if (!gear) return "法器属性已生效";
+    if (gear.stats.damage) return `飞剑伤害 +${gear.stats.damage}`;
+    if (gear.stats.wallHp) return `护阵上限 +${gear.stats.wallHp}`;
+    return `仙石结算 +${Math.round(gear.stats.goldBonus * 100)}%`;
+  }
+  function renderEquipmentGuide() {
+    const target = $("equipmentGuide");
+    if (!target) return;
+    const tutorial = P.equipmentTutorial;
+    if (!tutorial.firstGearReceived || tutorial.firstGearEquipped) {
+      target.hidden = true;
+      target.innerHTML = "";
+      return;
+    }
+    const gear = P.ownedGear.map(gearById).find(Boolean);
+    const gearLine = gear
+      ? `<small>已获 ${gear.icon}「${gear.name}」· ${gearStatLabel(gear)}</small>`
+      : "";
+    target.hidden = false;
+    target.innerHTML = `<div class="equipment-guide-seal">叶</div><div class="equipment-guide-copy"><b>叶轻舟 · 残器指引</b><p>荒原残器尚有灵性。此物可助你御剑，莫让它埋在妖尘里。</p>${gearLine}</div><button class="equipment-guide-btn" data-nav="equip">前往法宝</button>`;
+  }
   function renderGearInventory() {
     const target = $("gearInventory");
     if (!target) return;
@@ -248,11 +287,7 @@
       ? owned
           .map((gear) => {
             const equipped = gearInSlot(gear.slot)?.id === gear.id;
-            const stats = gear.stats.damage
-              ? `飞剑伤害 +${gear.stats.damage}`
-              : gear.stats.wallHp
-                ? `护阵上限 +${gear.stats.wallHp}`
-                : `仙石结算 +${Math.round(gear.stats.goldBonus * 100)}%`;
+            const stats = gearStatLabel(gear);
             return `<article class="gear-card ${equipped ? "equipped" : ""}"><i>${gear.icon}</i><div><b>${gear.name}</b><small>${gear.rarity} · ${stats}</small><p>${gear.description}</p></div><button class="small-btn" data-action="${equipped ? "unequip-gear" : "equip-gear"}" data-${equipped ? "slot" : "gear-id"}="${equipped ? gear.slot : gear.id}">${equipped ? "卸下" : "穿戴"}</button></article>`;
           })
           .join("")
@@ -279,6 +314,7 @@
     $("upgradeCost").textContent = 300 + P.weaponLevel * 180;
     renderGearSlots();
     renderGearInventory();
+    renderEquipmentGuide();
     let b = $("bag");
     b.innerHTML = "";
     let its = [
@@ -411,9 +447,15 @@
       return false;
     }
     P.equippedGear[gear.slot] = gear.id;
+    const firstEquip = !P.equipmentTutorial.firstGearEquipped;
+    if (firstEquip) P.equipmentTutorial.firstGearEquipped = true;
     save();
     profile();
-    toast(`已穿戴「${gear.name}」`);
+    toast(
+      firstEquip
+        ? `叶轻舟：灵纹已合。${gearStatLabel(gear)}，往后的妖潮便多一分胜算。`
+        : `已穿戴「${gear.name}」`,
+    );
     return true;
   }
   function unequipGear(slot) {
@@ -685,11 +727,16 @@
       P.materials.swordIron += reward.materials.swordIron;
       items.push(["⛓️", `剑胚残铁 ×${reward.materials.swordIron}`]);
     }
+    let showEquipmentGuide = false;
     if (reward.gear) {
       const gear = globalThis.P1_CONFIG?.gear?.[reward.gear];
       if (gear && !P.ownedGear.includes(gear.id)) {
         P.ownedGear.push(gear.id);
         P.equipment.push(`${gear.icon} ${gear.name}`);
+        if (!P.equipmentTutorial.firstGearReceived) {
+          P.equipmentTutorial.firstGearReceived = true;
+          showEquipmentGuide = true;
+        }
       }
       if (gear) items.push([gear.icon, gear.name]);
     }
@@ -703,7 +750,7 @@
       P.chapterProgress.currentStage = B.stage.id;
       selectedStageId = B.stage.id;
     }
-    return { gold: reward.gold, items, firstClear };
+    return { gold: reward.gold, items, firstClear, showEquipmentGuide };
   }
   function finish(win) {
     if (B.finished) return;
@@ -733,7 +780,9 @@
         : "护阵受损";
     $("resultSub").textContent = B.isNormalStage
       ? win
-        ? `「${B.stage.outro.speaker}」${B.stage.outro.text}`
+        ? normalRewards.showEquipmentGuide
+          ? "「叶轻舟」荒原残器尚有灵性。去法宝页穿戴它，让剑意真正归于你手。"
+          : `「${B.stage.outro.speaker}」${B.stage.outro.text}`
         : "本次已自动拾取的基础战利品将带回洞府。"
       : win
         ? "万剑归鞘，荒原妖气暂息。"

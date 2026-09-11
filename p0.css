@@ -1298,3 +1298,50 @@ button:active {
 .small-btn { border: 0; border-radius: 8px; padding: 7px 8px; background: #815439; color: #fff7d5; font-size: 10px; font-weight: 900; box-shadow: 0 2px 0 #573525; }
 .small-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #573525; }
 .gear-empty { padding: 12px; border: 1px dashed #c8a57e; border-radius: 10px; color: #8b6549; text-align: center; font-size: 11px; }
+
+
+/* P1.1｜叶轻舟首次装备引导：轻量提示，不阻断推图。 */
+.equipment-guide {
+  margin: 10px 19px 0;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 31px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 2px solid #8d7354;
+  border-radius: 14px;
+  background: linear-gradient(105deg, #fff9df, #e6f0d7);
+  box-shadow: 0 3px 0 #a98564;
+  color: #64432d;
+}
+.equipment-guide[hidden] { display: none; }
+.equipment-guide-seal {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #9f5338;
+  border-radius: 50%;
+  background: #c45b3c;
+  color: #fff5d2;
+  font-family: serif;
+  font-size: 16px;
+  font-weight: 900;
+}
+.equipment-guide-copy { min-width: 0; }
+.equipment-guide-copy b, .equipment-guide-copy small { display: block; }
+.equipment-guide-copy b { font-size: 11px; }
+.equipment-guide-copy p { margin: 3px 0; font-size: 10px; line-height: 1.38; }
+.equipment-guide-copy small { color: #966241; font-size: 9px; font-weight: 900; }
+.equipment-guide-btn {
+  border: 0;
+  border-radius: 8px;
+  padding: 7px 8px;
+  background: #6f533e;
+  color: #fff8d9;
+  box-shadow: 0 2px 0 #493126;
+  font-size: 10px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.equipment-guide-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #493126; }

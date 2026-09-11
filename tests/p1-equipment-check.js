@@ -15,7 +15,7 @@ const gameSource = fs
   .readFileSync(path.join(root, "p0.js"), "utf8")
   .replace(
     /\}\)\(\);\s*$/,
-    ";globalThis.__p1EquipmentTest={P,B,gearById,gearInSlot,equipmentStats,effectiveWeaponDamage,effectiveWallMaxHp,applyGoldBonus,currentPower,equipGear,unequipGear,start,shoot};})();",
+    ";globalThis.__p1EquipmentTest={P,B,gearById,gearInSlot,equipmentStats,effectiveWeaponDamage,effectiveWallMaxHp,applyGoldBonus,currentPower,equipGear,unequipGear,start,shoot,applyNormalStageRewards,renderEquipmentGuide};})();",
   );
 
 function makeElement(id = "") {
@@ -67,6 +67,7 @@ function boot(savedData = {}) {
   vm.createContext(context);
   vm.runInContext(dataSource, context, { filename: "p1-data.js" });
   vm.runInContext(gameSource, context, { filename: "p0.js" });
+  context.__p1EquipmentTest.elements = elements;
   return context.__p1EquipmentTest;
 }
 
@@ -112,5 +113,38 @@ const migrated = boot({
 assert(migrated.P.equippedGear.bracer === null, "旧存档中未拥有装备不会进入栏位");
 assert(migrated.P.equippedGear.robe === null, "旧存档中栏位不匹配装备会被清空");
 assert(migrated.P.equippedGear.jade === null, "旧存档中不存在玉佩归属会被清空");
+
+const freshTutorial = boot();
+assert(!freshTutorial.P.equipmentTutorial.firstGearReceived, "新存档默认未领取首件法器引导");
+assert(!freshTutorial.P.equipmentTutorial.firstGearEquipped, "新存档默认未完成首次穿戴引导");
+
+const migratedOwnedGear = boot({ ownedGear: ["wildBracer"] });
+assert(migratedOwnedGear.P.equipmentTutorial.firstGearReceived, "旧存档已有法器时跳过首次获得引导");
+assert(!migratedOwnedGear.P.equipmentTutorial.firstGearEquipped, "旧存档仅拥有法器时仍保留首次穿戴提示");
+
+const migratedEquippedGear = boot({
+  ownedGear: ["wildBracer"],
+  equippedGear: { bracer: "wildBracer", robe: null, jade: null },
+});
+assert(migratedEquippedGear.P.equipmentTutorial.firstGearEquipped, "旧存档已有有效穿戴时跳过首次穿戴引导");
+
+const firstGearReward = boot();
+firstGearReward.B.stage = {
+  id: "1-02",
+  firstClear: { gold: 220, materials: { swordIron: 3 }, gear: "wildBracer" },
+  repeat: { gold: 85, materials: { swordIron: 1 } },
+};
+const firstGearRewards = firstGearReward.applyNormalStageRewards(true);
+assert(firstGearRewards.showEquipmentGuide, "首次获得荒原护腕时请求展示装备引导");
+assert(firstGearReward.P.equipmentTutorial.firstGearReceived, "首次装备奖励写入已获得引导状态");
+firstGearReward.renderEquipmentGuide();
+assert(!firstGearReward.elements.equipmentGuide.hidden && firstGearReward.elements.equipmentGuide.innerHTML.includes("叶轻舟 · 残器指引"), "首页渲染叶轻舟轻量装备引导卡");
+assert(firstGearReward.equipGear("wildBracer"), "首次奖励的荒原护腕可直接穿戴");
+assert(firstGearReward.P.equipmentTutorial.firstGearEquipped, "首次成功穿戴写入引导完成状态");
+assert(firstGearReward.elements.equipmentGuide.hidden, "首次穿戴后首页装备引导自动隐藏");
+assert(firstGearReward.elements.toast.textContent.includes("灵纹已合") && firstGearReward.elements.toast.textContent.includes("飞剑伤害 +3"), "首次穿戴提示明确实际属性变化");
+firstGearReward.unequipGear("bracer");
+firstGearReward.equipGear("wildBracer");
+assert(!firstGearReward.elements.toast.textContent.includes("灵纹已合"), "首次穿戴引导只提示一次");
 
 console.log(`P1 基础装备检查通过：${assertions} 项断言全部通过。`);
