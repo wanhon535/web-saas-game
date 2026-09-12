@@ -1374,3 +1374,65 @@ button:active {
 .pet-growth-card > p:nth-of-type(2) { grid-column: 1 / -1; color: #7d5945; line-height: 1.45; }
 .pet-growth-card .small-gold { grid-column: 1 / -1; width: 100%; margin-top: 2px; }
 .pet-growth-card .small-gold:disabled { opacity: .55; filter: grayscale(.45); }
+
+/* P1｜视觉与信息层级优化：突出当前目标，弱化非必要说明。 */
+.home-scroll { padding: 10px 12px 94px; background: linear-gradient(#b7dce0 0, #e8efd2 38%, #e6d7b3 100%); }
+.chapter-map-card { min-height: 230px; padding: 15px 13px; background: linear-gradient(180deg, #234b5a 0%, #4d7d7c 52%, #9f956f 53%, #c9a97b 100%); }
+.chapter-map-card .boss-sigil { top: 82px; width: 92px; height: 92px; font-size: 49px; box-shadow: 0 4px 0 #66452c, 0 8px 17px #172f3590; }
+.chapter-map-card .boss-label { top: 180px; font-size: 13px; }
+.chapter-map-card .boss-label small { display: none; }
+.chapter-map-card .chapter-heading h1 { font-size: 23px; letter-spacing: 3px; }
+.chapter-map-card .chapter-heading p { display: none; }
+.stage-map { position: relative; z-index: 3; left: auto; right: auto; bottom: auto; margin: 10px 3px 0; gap: 7px; }
+.stage-card { min-height: 48px; padding: 5px 9px; border-radius: 12px; box-shadow: 0 2px 0 #7e533d; }
+.stage-card-copy { gap: 1px; }
+.stage-card-copy b { font-size: 11px; }
+.stage-card-copy small { font-size: 9px; }
+.stage-number { width: 30px; height: 30px; font-size: 13px; }
+.stage-state { font-size: 15px; }
+.stage-brief { margin: 10px 3px 0; padding: 10px 11px; border-radius: 13px; box-shadow: 0 2px 0 #b27c58; }
+.stage-brief-top b { font-size: 13px; }
+.stage-brief p, .stage-objective { margin: 6px 0 4px; font-size: 11px; line-height: 1.35; }
+.stage-reward { display: flex; gap: 6px; align-items: baseline; margin-top: 6px; padding-top: 6px; font-size: 9px; }
+.stage-reward b { color: #a35f36; white-space: nowrap; }
+.formation { margin: 9px 3px 0; min-height: 44px; padding: 7px 10px; border-radius: 12px; box-shadow: 0 2px 0 #55716c; }
+.formation > b { font-size: 10px; }
+.formation span { font-size: 10px; }
+.start-btn { margin: 10px 3px 0; min-height: 57px; border-radius: 14px; }
+.home-tip { margin: 9px 7px 0; color: #6d543e; font-size: 10px; text-align: center; }
+.home-tip b { color: #a35f36; }
+.page-body { padding: 10px 12px 88px; }
+.page-title { font-size: 20px; margin-top: 1px; }
+.page-subtitle { margin-bottom: 8px; }
+.paper-card, .hero-card { padding: 10px; margin-bottom: 10px; border-radius: 14px; box-shadow: 0 3px 0 #a97551; }
+.hero-card { min-height: 132px; gap: 8px; }
+.hero-art { font-size: 88px; }
+.hero-card h2 { font-size: 17px; }
+.hero-card p { margin: 5px 0; font-size: 10px; }
+.hero-card strong { margin-top: 6px; padding: 5px 6px; font-size: 13px; }
+.stats p:nth-of-type(n+4) { display: none; }
+.stats p { padding-bottom: 5px; margin-bottom: 6px; }
+.material-card { padding: 8px 10px; }
+.material-copy small { max-width: 205px; }
+.pet-altar { min-height: 176px; padding: 12px; }
+.pet-orb { width: 96px; height: 96px; margin: 1px auto 7px; font-size: 48px; box-shadow: 0 4px 0 #5e493a, 0 0 22px #d7ff9b77; }
+.locked { font-size: 10px; line-height: 1.4; }
+#battle { background: #1a3341; }
+.battle-head { height: 54px; padding: 8px 42px 6px; background: linear-gradient(180deg, #112b3feb, #112b3f00); }
+.battle-head h2 { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.battle-head p { font-size: 10px; margin-top: 2px; }
+.pause { width: 32px; height: 32px; top: 8px; right: 10px; border-radius: 50%; }
+.boss-hud { top: 57px; left: 14px; right: 14px; padding: 6px 9px; border-radius: 10px; }
+.battle-bottom { min-height: 118px; padding: 8px 12px 10px; background: linear-gradient(0deg, #10293bef 0%, #203d4ddd 72%, #203d4d00); }
+.wall { gap: 6px; }
+.wall > span { font-size: 21px; }
+.green { height: 11px; }
+.battle-actions { display: flex; align-items: center; justify-content: space-between; gap: 9px; margin-top: 8px; }
+.run-gold { color: #f8dfa0; font-size: 10px; white-space: nowrap; }
+.run-gold span { display: block; color: #fff9df; font-size: 18px; line-height: 1.05; }
+.battle-actions .pet-skill { flex: 1; min-height: 38px; padding: 5px 9px; border-radius: 11px; border: 2px solid #4a8a82; background: linear-gradient(145deg, #d9f8e7, #82c3b7); box-shadow: 0 3px 0 #3f736d; color: #173f3b; font-size: 11px; font-weight: 1000; text-align: left; }
+.battle-actions .pet-skill small { display: block; margin-top: 1px; color: #3c6964; font-size: 8px; }
+.battle-tip { margin: 5px 0 0; color: #d5e7db; font-size: 9px; text-align: center; }
+.catch-panel { bottom: 121px; }
+.battle-msg { top: 34%; font-size: 20px; }
+@media (min-width: 431px) { .home-scroll, .page-body { padding-left: 18px; padding-right: 18px; } .stage-map, .stage-brief, .formation, .start-btn { margin-left: 8px; margin-right: 8px; } }

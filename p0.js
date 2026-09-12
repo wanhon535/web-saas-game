@@ -174,15 +174,14 @@ P1_DEFAULT = {
       const cleared = Boolean(P.chapterProgress.cleared[stage.id]), unlocked = isStageUnlocked(stage), selected = active?.id === stage.id, state = cleared ? "cleared" : unlocked ? "open" : "locked";
       const status = cleared ? "已完成" : unlocked ? (stage.type === "story" ? "可结算" : "可挑战") : "尚未解锁";
       const badge = stage.type === "boss" ? "🦅" : stage.type === "elite" ? "◆" : stage.type === "story" ? "☯" : index + 1;
-      return `<button class="stage-card ${state} ${selected ? "selected" : ""}" data-action="select-stage" data-stage-id="${stage.id}" ${unlocked ? "" : 'aria-disabled="true"'}><span class="stage-number">${badge}</span><span class="stage-card-copy"><b>${stage.id} · ${stage.title}</b><small>${stageTypeLabel(stage)} · ${status} · 推荐剑意 ${stage.recommendedPower}</small></span><span class="stage-state">${cleared ? "✓" : unlocked ? "✦" : "🔒"}</span></button>`;
+      return `<button class="stage-card ${state} ${selected ? "selected" : ""}" data-action="select-stage" data-stage-id="${stage.id}" ${unlocked ? "" : 'aria-disabled="true"'}><span class="stage-number">${badge}</span><span class="stage-card-copy"><b>${stage.id} · ${stage.title}</b><small>${stageTypeLabel(stage)} · ${status}</small></span><span class="stage-state">${cleared ? "✓" : unlocked ? "✦" : "🔒"}</span></button>`;
     }).join("");
     if (!active) { brief.innerHTML = "<b>第一章试炼尚未配置</b>"; startButton.disabled = true; return; }
     const cleared = Boolean(P.chapterProgress.cleared[active.id]), reward = cleared ? active.repeat : active.firstClear;
-    const battleText = active.type === "story" ? "完成章节结算" : active.type === "elite" || active.type === "boss" ? `${active.waves} 波妖潮后迎战首领` : `${active.waves} 波妖潮`;
-    brief.innerHTML = `<div class="stage-brief-top"><span>${active.id}</span><b>${active.title}</b><em>${cleared ? "重复挑战" : "首通奖励"}</em></div><p>「${active.intro.speaker}」${active.intro.text}</p><small>${stageTypeLabel(active)} · 推荐剑意 ${active.recommendedPower} · ${battleText}</small><div class="stage-reward">${rewardSummary(reward)}</div>`;
+    const objective = active.type === "story" ? "完成第一章结算，整理荒原战果" : active.type === "boss" ? `击退 ${active.boss?.name || "守关首领"}，完成结契试炼` : active.type === "elite" ? `清剿妖潮后，击败 ${active.boss?.name || "精英首领"}` : `守住护宗大阵，清剿 ${active.waves} 波妖潮`;
+    brief.innerHTML = `<div class="stage-brief-top"><span>${active.id}</span><b>${active.title}</b><em>${cleared ? "已完成" : "当前目标"}</em></div><p class="stage-objective">${objective}</p><small>${stageTypeLabel(active)} · 推荐剑意 ${active.recommendedPower}</small><div class="stage-reward"><b>${cleared ? "重复所得" : "首通所得"}</b><span>${rewardSummary(reward)}</span></div>`;
     startButton.disabled = false; startButton.innerHTML = `✦ ${active.type === "story" ? "完成" : "进入"} ${active.id} · ${active.title}<small>${cleared ? "重复奖励：" : "首通奖励："}${rewardSummary(reward)}</small>`;
-  }
-  function selectStage(id) {
+  }  function selectStage(id) {
     const stage = stageById(id);
     if (!stage || !isStageUnlocked(stage)) {
       toast(stage?.lockedReason || "此关尚未解锁");
@@ -629,138 +628,87 @@ P1_DEFAULT = {
       d.spin += dt * 4;
     });
   }
+  function drawBattleScene(w, h) {
+    const stageType = B.stage?.type || "normal";
+    const palette = stageType === "boss" ? ["#152d43", "#355d67", "#9a8466"] : stageType === "elite" ? ["#233a4b", "#57736d", "#b59b75"] : ["#284b5b", "#74988d", "#d1ad79"];
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, palette[0]); sky.addColorStop(0.43, palette[1]); sky.addColorStop(1, palette[2]);
+    ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.globalAlpha = stageType === "boss" ? 0.55 : 0.34; ctx.fillStyle = "#f4e7a6";
+    ctx.beginPath(); ctx.arc(w * 0.76, h * 0.15, Math.min(38, w * 0.1), 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 0.18; ctx.fillStyle = "#d6fff2";
+    for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.arc((i * 91 + 17) % w, 40 + (i % 3) * 34, 1.5, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    const mountains = [[-90, h * 0.37, 150, h * 0.13, 325, h * 0.4], [w * 0.31, h * 0.42, w * 0.57, h * 0.16, w * 0.86, h * 0.43], [w * 0.7, h * 0.4, w * 0.9, h * 0.2, w + 120, h * 0.42]];
+    ctx.fillStyle = "#183d47aa";
+    mountains.forEach(([x1, y1, x2, y2, x3, y3]) => { ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3); ctx.lineTo(x3, h * 0.57); ctx.lineTo(x1, h * 0.57); ctx.closePath(); ctx.fill(); });
+    ctx.save(); ctx.globalAlpha = 0.17; ctx.fillStyle = "#e8fff3";
+    for (let i = 0; i < 4; i++) { const y = h * (0.3 + i * 0.055); ctx.beginPath(); ctx.ellipse(w * (0.18 + i * 0.2), y, w * 0.32, 16, -0.1, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+    const groundY = h * 0.43, ground = ctx.createLinearGradient(0, groundY, 0, h);
+    ground.addColorStop(0, "#a98a67"); ground.addColorStop(1, "#5a654d"); ctx.fillStyle = ground; ctx.fillRect(0, groundY, w, h - groundY);
+    ctx.fillStyle = "#d7bc8b"; ctx.beginPath(); ctx.moveTo(w * 0.42, groundY); ctx.lineTo(w * 0.61, groundY); ctx.lineTo(w * 0.86, h); ctx.lineTo(w * 0.1, h); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = "#795d45"; ctx.globalAlpha = 0.45; ctx.lineWidth = 1;
+    for (let y = groundY + 32; y < h; y += 43) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+    for (let x = -w; x < w * 2; x += 58) { ctx.beginPath(); ctx.moveTo(w * 0.51, groundY); ctx.lineTo(x, h); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    ctx.save(); ctx.strokeStyle = "#8af0c4"; ctx.shadowColor = "#65efc6"; ctx.shadowBlur = 12; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(18, h - 114); ctx.lineTo(w - 18, h - 114); ctx.stroke();
+    ctx.globalAlpha = 0.42; ctx.lineWidth = 1;
+    for (let x = 38; x < w - 20; x += 54) { ctx.beginPath(); ctx.arc(x, h - 114, 10, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.restore();
+  }
+  function drawDrop(d) {
+    ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.spin);
+    const equip = d.type === "equip"; ctx.shadowColor = equip ? "#cfadff" : "#ffd85b"; ctx.shadowBlur = 12;
+    ctx.fillStyle = equip ? "#b994ec" : "#f7c84b"; ctx.strokeStyle = "#6b4730"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(9, 0); ctx.lineTo(0, 10); ctx.lineTo(-9, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#fff8c9"; ctx.fillRect(-1.5, -5, 3, 10); ctx.restore();
+  }
+  function drawPlayerSprite(x, y) {
+    ctx.save(); ctx.fillStyle = "#1a2630aa"; ctx.beginPath(); ctx.ellipse(x, y + 24, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
+    const aura = ctx.createRadialGradient(x, y + 2, 4, x, y + 2, 44); aura.addColorStop(0, "#dfffd788"); aura.addColorStop(1, "#8be6c000"); ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(x, y + 2, 44, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#f3d47d"; ctx.shadowColor = "#fff1a3"; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 19, y + 16); ctx.lineTo(x + 36, y - 19); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = "#1f3248"; ctx.beginPath(); ctx.moveTo(x - 26, y + 27); ctx.lineTo(x + 26, y + 27); ctx.lineTo(x + 16, y - 6); ctx.lineTo(x - 16, y - 6); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#49649a"; ctx.beginPath(); ctx.moveTo(x - 15, y - 4); ctx.lineTo(x + 15, y - 4); ctx.lineTo(x + 10, y + 24); ctx.lineTo(x - 10, y + 24); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#d8b76d"; ctx.fillRect(x - 14, y + 5, 28, 4);
+    ctx.fillStyle = "#f4d7ae"; ctx.beginPath(); ctx.arc(x, y - 19, 15, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#23304b"; ctx.beginPath(); ctx.arc(x, y - 25, 16, Math.PI, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 16, y - 26, 32, 6);
+    ctx.fillStyle = "#fff0be"; ctx.fillRect(x - 9, y - 24, 18, 3); ctx.fillStyle = "#25314a"; ctx.fillRect(x - 8, y - 18, 4, 2); ctx.fillRect(x + 4, y - 18, 4, 2); ctx.restore();
+  }
+  function drawEnemySprite(e) {
+    const r = e.r, isBird = e.boss && e.kind === "chapter", isElite = e.boss && e.kind === "elite";
+    ctx.save(); ctx.translate(e.x, e.y); ctx.fillStyle = "#162f30aa"; ctx.beginPath(); ctx.ellipse(0, r * 0.72, r * 0.9, r * 0.28, 0, 0, Math.PI * 2); ctx.fill();
+    if (isBird) {
+      const wingColor = e.enraged ? "#bd5959" : "#5c9b80"; ctx.fillStyle = wingColor; ctx.strokeStyle = "#274e4c"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-r * 0.2, 0); ctx.lineTo(-r * 1.1, -r * 0.55); ctx.lineTo(-r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(r * 0.2, 0); ctx.lineTo(r * 1.1, -r * 0.55); ctx.lineTo(r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = e.enraged ? "#e16a5d" : "#78bea0"; ctx.beginPath(); ctx.ellipse(0, 0, r * 0.52, r * 0.72, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#f3d273"; ctx.beginPath(); ctx.moveTo(0, -r * 0.08); ctx.lineTo(r * 0.45, r * 0.08); ctx.lineTo(0, r * 0.18); ctx.closePath(); ctx.fill();
+    } else if (isElite) {
+      ctx.fillStyle = e.enraged ? "#b8544e" : "#78816b"; ctx.strokeStyle = "#3e483b"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-r * 0.85, r * 0.45); ctx.lineTo(-r * 0.72, -r * 0.4); ctx.lineTo(-r * 0.25, -r * 0.82); ctx.lineTo(r * 0.48, -r * 0.66); ctx.lineTo(r * 0.86, -r * 0.08); ctx.lineTo(r * 0.7, r * 0.56); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = "#a9a58e"; [[-r * .35,-r*.3],[r*.3,-r*.22],[0,r*.25]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,r*.17,0,Math.PI*2);ctx.fill();});
+    } else {
+      const spirit = e.name.includes("灵"); ctx.fillStyle = spirit ? "#75649b" : "#58735d"; ctx.strokeStyle = "#263d3a"; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.ellipse(0, 1, r * 0.72, r * 0.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      if (!spirit) { ctx.beginPath(); ctx.moveTo(-r*.48,-r*.48); ctx.lineTo(-r*.24,-r*.94); ctx.lineTo(0,-r*.5); ctx.lineTo(r*.28,-r*.94); ctx.lineTo(r*.48,-r*.42); ctx.closePath(); ctx.fill(); }
+      else { ctx.globalAlpha = .4; ctx.fillStyle = "#cdb9ed"; ctx.beginPath(); ctx.moveTo(-r*.7,r*.1);ctx.lineTo(-r*.95,r*.85);ctx.lineTo(0,r*.57);ctx.lineTo(r*.9,r*.88);ctx.lineTo(r*.64,r*.05);ctx.closePath();ctx.fill();ctx.globalAlpha=1; }
+    }
+    ctx.fillStyle = "#f8e9a7"; ctx.beginPath(); ctx.arc(-r * 0.23, -r * 0.1, 3.4, 0, Math.PI * 2); ctx.arc(r * 0.23, -r * 0.1, 3.4, 0, Math.PI * 2); ctx.fill();
+    if (e.hit > 0) { ctx.globalAlpha = Math.min(0.9, e.hit * 5); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, 0, r + 7, 0, Math.PI * 2); ctx.fill(); }
+    if (e.boss) { ctx.globalAlpha = 1; ctx.fillStyle = "#fff4c7"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; ctx.fillText(e.enraged ? `狂暴 · ${e.name}` : e.name, 0, -r - 13); ctx.fillStyle = "#342b32"; ctx.fillRect(-r, r + 10, r * 2, 5); ctx.fillStyle = e.enraged ? "#ef6559" : "#f2ba58"; ctx.fillRect(-r, r + 10, r * 2 * Math.max(0, e.hp / e.maxHp), 5); }
+    ctx.restore();
+  }
+  function drawSwordSprite(s) {
+    ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(Math.atan2(s.target.y - s.y, s.target.x - s.x) + Math.PI / 2);
+    ctx.shadowColor = "#fff5a3"; ctx.shadowBlur = 11; ctx.fillStyle = "#fff3a4"; ctx.strokeStyle = "#a96f35"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, -15); ctx.lineTo(5, 8); ctx.lineTo(0, 16); ctx.lineTo(-5, 8); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#64d9e7"; ctx.fillRect(-1.5, -8, 3, 17); ctx.restore();
+  }
   function draw() {
     if (!ctx) return;
-    let { w, h } = cs();
-    ctx.clearRect(0, 0, w, h);
-    let g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, "#365a65");
-    g.addColorStop(0.42, "#749a91");
-    g.addColorStop(1, "#d2ad79");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#173f4a99";
-    for (let i = 0; i < 6; i++) {
-      let x = (i * w) / 5 - 50;
-      ctx.beginPath();
-      ctx.moveTo(x, 80);
-      ctx.lineTo(x + 110, 25 + (i % 2) * 38);
-      ctx.lineTo(x + 220, 100);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.fillStyle = "#e6cea1";
-    ctx.fillRect(0, h * 0.36, w, h * 0.64);
-    ctx.fillStyle = "#c49e70";
-    for (let y = h * 0.42; y < h - 120; y += 52) ctx.fillRect(0, y, w, 2);
-    for (let x = 0; x < w; x += 42) ctx.fillRect(x, h * 0.36, 2, h * 0.64);
-    ctx.fillStyle = "#1d4a48";
-    [
-      [0, 180],
-      [w, 210],
-      [0, h * 0.58],
-      [w, h * 0.61],
-    ].forEach(([x, y]) => {
-      ctx.beginPath();
-      ctx.moveTo(x, y + 120);
-      ctx.lineTo(x + (x === 0 ? 70 : -70), y);
-      ctx.lineTo(x + (x === 0 ? 115 : -115), y + 130);
-      ctx.closePath();
-      ctx.fill();
-    });
-    B.drops.forEach((d) => {
-      ctx.save();
-      ctx.translate(d.x, d.y);
-      ctx.rotate(d.spin);
-      ctx.fillStyle = d.type === "equip" ? "#b182df" : "#ffd45b";
-      ctx.strokeStyle = "#754c30";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(0, 0, d.type === "equip" ? 11 : 8, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = "#fff7bd";
-      ctx.fillRect(-2, -5, 4, 10);
-      ctx.restore();
-    });
-    let hx = B.player.x,
-      hy = B.player.y;
-    ctx.strokeStyle = "#79e2b0";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(15, h - 91);
-    ctx.lineTo(w - 15, h - 91);
-    ctx.stroke();
-    ctx.fillStyle = "#284a59";
-    ctx.fillRect(hx - 38, hy - 3, 76, 37);
-    ctx.fillStyle = "#ffe7b0";
-    ctx.beginPath();
-    ctx.arc(hx, hy - 20, 16, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = "#5b3e88";
-    ctx.beginPath();
-    ctx.moveTo(hx - 23, hy + 25);
-    ctx.lineTo(hx + 23, hy + 25);
-    ctx.lineTo(hx + 16, hy - 9);
-    ctx.lineTo(hx - 16, hy - 9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#fff1b4";
-    ctx.fillRect(hx - 9, hy - 22, 18, 4);
-    B.enemies.forEach((e) => {
-      ctx.save();
-      ctx.translate(e.x, e.y);
-      let r = e.r;
-      ctx.fillStyle = e.boss ? (e.enraged ? "#db5b52" : "#3f907a") : "#66806e";
-      ctx.strokeStyle = e.boss ? "#5a2730" : "#263d3a";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = "#f2dfa0";
-      ctx.beginPath();
-      ctx.arc(-r * 0.3, -3, 4, 0, Math.PI * 2);
-      ctx.arc(r * 0.3, -3, 4, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#342231";
-      ctx.fillRect(-r * 0.38, r * 0.25, r * 0.76, 4);
-      if (e.hit > 0) {
-        ctx.fillStyle = "#fff";
-        ctx.globalAlpha = e.hit * 4;
-        ctx.beginPath();
-        ctx.arc(0, 0, r + 6, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      if (e.boss) {
-        ctx.fillStyle = "#fff3c0";
-        ctx.font = "bold 10px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(e.enraged ? `狂暴 · ${e.name}` : e.name, 0, -r - 11);
-        ctx.fillStyle = "#3b2d2f";
-        ctx.fillRect(-r, r + 9, r * 2, 5);
-        ctx.fillStyle = "#ed6354";
-        ctx.fillRect(-r, r + 9, r * 2 * Math.max(0, e.hp / e.maxHp), 5);
-      }
-      ctx.restore();
-    });
-    B.swords.forEach((s) => {
-      ctx.save();
-      ctx.translate(s.x, s.y);
-      ctx.rotate(Math.atan2(s.target.y - s.y, s.target.x - s.x) + Math.PI / 2);
-      ctx.fillStyle = "#fff3a4";
-      ctx.strokeStyle = "#b77631";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(0, -13);
-      ctx.lineTo(4, 10);
-      ctx.lineTo(0, 15);
-      ctx.lineTo(-4, 10);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    });
+    const { w, h } = cs(); ctx.clearRect(0, 0, w, h); drawBattleScene(w, h);
+    B.drops.forEach(drawDrop); drawPlayerSprite(B.player.x, B.player.y); B.enemies.forEach(drawEnemySprite); B.swords.forEach(drawSwordSprite);
   }
   function loop(t) {
     if (!B.running) return;

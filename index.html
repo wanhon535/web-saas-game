@@ -33,13 +33,12 @@
             <div class="boss-sigil">🦅</div>
             <div class="boss-label">
               章节 Boss · 寻木青雀<small>完成 1-08 后开放首次结契</small>
-            </div>
-            <div
-              id="stageMap"
-              class="stage-map"
-              aria-label="第一章关卡地图"
-            ></div>
-          </section>
+            </div>          </section>
+          <div
+            id="stageMap"
+            class="stage-map"
+            aria-label="第一章关卡地图"
+          ></div>
           <section
             id="stageBrief"
             class="stage-brief"
@@ -52,11 +51,8 @@
             <span id="formationState">未结契灵宠 · 初始一柄飞剑</span>
           </section>
           <button id="stageStart" class="start-btn" data-action="start">
-            进入试炼<small>守住护宗大阵，获得第一章养成资源</small>
-          </button>
-          <p class="p0-note">
-            <b>第一章推进：</b>顺序推进 1-01 至 1-10：普通试炼 → 精英石甲兽 → 青雀结契 → 章节结算。首通可取得固定法器、养成材料与首只御兽。
-          </p>
+            进入试炼<small>完成当前试炼，解锁下一节点</small>
+          </button>          <p class="home-tip"><b>推进目标</b> · 完成当前试炼，沿荒原古道前往寻木巢穴。</p>
         </main>
         <nav class="tabbar">
           <button class="tab active" data-nav="home">
@@ -83,14 +79,14 @@
             <div class="hero-art">仙</div>
             <div>
               <h2>万剑真君</h2>
-              <p>独守荒原，以一剑破万妖。</p>
+              <p>守住护宗大阵，斩尽荒原妖潮。</p>
               <strong>剑意 <span id="powerValue">126</span></strong>
             </div>
           </section>
           <section class="paper-card material-card">
             <div class="material-copy">
               <span class="material-icon">⛓️</span>
-              <div><b>剑胚残铁</b><small>普通关稳定产出，用于后续祭炼与打造。</small></div>
+              <div><b>剑胚残铁</b><small>试炼掉落，用于祭炼飞剑。</small></div>
             </div>
             <strong id="swordIronValue">0</strong>
           </section>
@@ -162,7 +158,7 @@
             <p id="petSkillInfo">尚未开放协战技能</p>
             <button id="petUpgrade" class="gold-btn small-gold" data-action="upgrade-pet">培养御兽<small>180 仙石 · 1 青雀灵羽</small></button>
           </section>
-          <section class="paper-card locked">🔒 第二只御兽、切换与羁绊为后续内容，本章不做。</section>
+          <section class="paper-card locked">更多御兽将随主线逐步开放。</section>
         </main>
         <nav class="tabbar">
           <button class="tab" data-nav="home">⛩️<small>荒原</small></button
@@ -212,14 +208,12 @@
               <div class="bar green"><i id="wallHpBar"></i></div>
             </div>
           </div>
-          <div class="battle-info">
-            <button data-action="hint">
-              🗡️ 自动御剑<small>初始 1 柄 · 0.85 秒</small></button
-            ><b>本局仙石<span id="runGold">0</span></b
-            ><button data-action="pet-skill" id="petSkill" class="pet-skill" hidden>✦ 青翎回风<small>寻木青雀协战</small></button><button data-action="hint">🧭 移动阵眼<small>拖动主角 / 方向键</small></button>
+          <div class="battle-actions">
+            <b class="run-gold">本局仙石 <span id="runGold">0</span></b>
+            <button data-action="pet-skill" id="petSkill" class="pet-skill" hidden>✦ 青翎回风<small>寻木青雀协战</small></button>
           </div>
-        </div>
-      </section>
+          <p class="battle-tip">自动御剑中 · 拖动主角或使用方向键躲避妖潮</p>
+        </div>      </section>
 
       <section id="result" class="screen">
         <main class="result-body">
