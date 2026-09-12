@@ -34,11 +34,16 @@
             <div class="boss-label">
               章节 Boss · 寻木青雀<small>完成 1-08 后开放首次结契</small>
             </div>          </section>
-          <div
-            id="stageMap"
-            class="stage-map"
-            aria-label="第一章关卡地图"
-          ></div>
+          <button
+            id="chapterDrawerToggle"
+            class="chapter-progress-toggle"
+            data-action="toggle-chapter-drawer"
+            aria-controls="chapterDrawer"
+            aria-expanded="false"
+          >
+            <span>第一章进度 <b id="chapterProgressText">0 / 10</b></span>
+            <small>查看全部关卡 ›</small>
+          </button>
           <section
             id="stageBrief"
             class="stage-brief"
@@ -54,6 +59,17 @@
             进入试炼<small>完成当前试炼，解锁下一节点</small>
           </button>          <p class="home-tip"><b>推进目标</b> · 完成当前试炼，沿荒原古道前往寻木巢穴。</p>
         </main>
+        <aside id="chapterDrawer" class="chapter-drawer" hidden>
+          <button class="drawer-scrim" data-action="close-chapter-drawer" aria-label="关闭章节列表"></button>
+          <section class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="chapterDrawerTitle">
+            <header class="drawer-head">
+              <div><small>天衍剑宗 · 幽冥荒原</small><h2 id="chapterDrawerTitle">章节试炼</h2></div>
+              <button class="drawer-close" data-action="close-chapter-drawer" aria-label="关闭">×</button>
+            </header>
+            <p class="drawer-note">选择已解锁关卡后，将返回荒原首页。</p>
+            <div id="stageMap" class="stage-map" aria-label="第一章关卡地图"></div>
+          </section>
+        </aside>
         <nav class="tabbar">
           <button class="tab active" data-nav="home">
             ⛩️<small>荒原</small></button
@@ -99,9 +115,6 @@
               <p>飞剑伤害 <b><span id="damageValue">16</span><small>基础 <span id="baseDamageValue">16</span></small></b></p>
               <p>护阵上限 <b id="wallMaxValue">1200</b></p>
               <p>仙石结算 <b id="goldBonusValue">+0%</b></p>
-              <p>御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b></p>
-              <p>飞剑数量 <b>1</b></p>
-              <p>吸附范围 <b><span id="magnetRange">380</span></b></p>
               <button class="gold-btn" data-action="upgrade">
                 祭炼飞剑<small
                   >消耗 <span id="upgradeCost">480</span> 仙石</small
@@ -109,15 +122,25 @@
               </button>
             </div>
           </section>
-          <section class="paper-card">
-            <h3>已获法器</h3>
-            <p class="card-note">固定属性立即计入试炼；同一栏位只能穿戴一件。</p>
-            <div id="gearInventory" class="gear-inventory"></div>
-          </section>
-          <section class="paper-card">
-            <h3>宗门宝库 · 其余收获</h3>
-            <div id="bag" class="bag"></div>
-          </section>
+          <details class="fold-card stats-fold">
+            <summary><span>属性详情</span><small>攻击、飞剑、吸附</small></summary>
+            <div class="fold-content stats-detail">
+              <p>御剑间隔 <b><span id="attackInterval">0.85</span> 秒</b></p>
+              <p>飞剑数量 <b>1</b></p>
+              <p>吸附范围 <b><span id="magnetRange">380</span></b></p>
+            </div>
+          </details>
+          <details class="fold-card">
+            <summary><span>已获法器</span><small>穿戴与查看</small></summary>
+            <div class="fold-content">
+              <p class="card-note">固定属性立即计入试炼；同一栏位只能穿戴一件。</p>
+              <div id="gearInventory" class="gear-inventory"></div>
+            </div>
+          </details>
+          <details class="fold-card">
+            <summary><span>宗门宝库</span><small>查看其余收获</small></summary>
+            <div class="fold-content"><div id="bag" class="bag"></div></div>
+          </details>
         </main>
         <nav class="tabbar">
           <button class="tab" data-nav="home">⛩️<small>荒原</small></button

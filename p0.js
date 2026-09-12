@@ -167,6 +167,15 @@ P1_DEFAULT = {
     return lines.join(" · ") || "暂无额外奖励";
   }
   function stageTypeLabel(stage) { return { normal: "普通试炼", elite: "精英试炼", boss: "章节 Boss", story: "章节结算" }[stage.type] || "试炼"; }
+  function toggleChapterDrawer(show) {
+    const drawer = $("chapterDrawer"), toggle = $("chapterDrawerToggle");
+    if (!drawer) return;
+    const shouldOpen = typeof show === "boolean" ? show : drawer.hidden;
+    drawer.hidden = !shouldOpen;
+    document.body.classList.toggle("chapter-drawer-open", shouldOpen);
+    if (toggle) toggle.setAttribute("aria-expanded", String(shouldOpen));
+  }
+
   function renderChapterMap() {
     const map = $("stageMap"), brief = $("stageBrief"), startButton = $("stageStart"); if (!map || !brief || !startButton) return;
     const stages = chapterStages(), active = selectedStage();
@@ -176,6 +185,11 @@ P1_DEFAULT = {
       const badge = stage.type === "boss" ? "🦅" : stage.type === "elite" ? "◆" : stage.type === "story" ? "☯" : index + 1;
       return `<button class="stage-card ${state} ${selected ? "selected" : ""}" data-action="select-stage" data-stage-id="${stage.id}" ${unlocked ? "" : 'aria-disabled="true"'}><span class="stage-number">${badge}</span><span class="stage-card-copy"><b>${stage.id} · ${stage.title}</b><small>${stageTypeLabel(stage)} · ${status}</small></span><span class="stage-state">${cleared ? "✓" : unlocked ? "✦" : "🔒"}</span></button>`;
     }).join("");
+    const progressText = $("chapterProgressText");
+    if (progressText) {
+      const finished = stages.filter((stage) => P.chapterProgress.cleared[stage.id]).length;
+      progressText.textContent = finished + " / " + stages.length;
+    }
     if (!active) { brief.innerHTML = "<b>第一章试炼尚未配置</b>"; startButton.disabled = true; return; }
     const cleared = Boolean(P.chapterProgress.cleared[active.id]), reward = cleared ? active.repeat : active.firstClear;
     const objective = active.type === "story" ? "完成第一章结算，整理荒原战果" : active.type === "boss" ? `击退 ${active.boss?.name || "守关首领"}，完成结契试炼` : active.type === "elite" ? `清剿妖潮后，击败 ${active.boss?.name || "精英首领"}` : `守住护宗大阵，清剿 ${active.waves} 波妖潮`;
@@ -191,6 +205,7 @@ P1_DEFAULT = {
     P.chapterProgress.currentStage = stage.id;
     save();
     renderChapterMap();
+    toggleChapterDrawer(false);
   }
 
   function renderGearSlots() {
@@ -732,6 +747,10 @@ P1_DEFAULT = {
     toast("本命飞剑已祭炼，伤害 +3");
   }
   window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("chapterDrawer")?.hidden) {
+      toggleChapterDrawer(false);
+      return;
+    }
     let k = e.key.toLowerCase();
     if (
       [
@@ -756,10 +775,13 @@ P1_DEFAULT = {
     let b = e.target.closest("button");
     if (!b) return;
     if (b.dataset.nav) {
+      toggleChapterDrawer(false);
       open(b.dataset.nav);
       return;
     }
     let a = b.dataset.action;
+    if (a === "toggle-chapter-drawer") toggleChapterDrawer();
+    if (a === "close-chapter-drawer") toggleChapterDrawer(false);
     if (a === "start") start(selectedStageId);
     if (a === "select-stage") selectStage(b.dataset.stageId);
     if (a === "toast") toast(b.dataset.text);

@@ -1436,3 +1436,143 @@ button:active {
 .catch-panel { bottom: 121px; }
 .battle-msg { top: 34%; font-size: 20px; }
 @media (min-width: 431px) { .home-scroll, .page-body { padding-left: 18px; padding-right: 18px; } .stage-map, .stage-brief, .formation, .start-btn { margin-left: 8px; margin-right: 8px; } }
+
+/* P1｜收纳布局：将章节选择与法宝次要信息从首屏移入抽屉/折叠区。 */
+.chapter-progress-toggle {
+  width: calc(100% - 6px);
+  min-height: 42px;
+  margin: 9px 3px 0;
+  padding: 8px 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #947052;
+  border-radius: 13px;
+  background: linear-gradient(100deg, #fff4d8ee, #f2d4a1ee);
+  box-shadow: 0 2px 0 #8b6044;
+  color: #59402f;
+  text-align: left;
+}
+.chapter-progress-toggle span { font-size: 12px; font-weight: 900; }
+.chapter-progress-toggle b { color: #a45e34; }
+.chapter-progress-toggle small { color: #7d5945; font-size: 10px; font-weight: 800; }
+.chapter-progress-toggle:active { box-shadow: 0 1px 0 #8b6044; }
+.chapter-drawer[hidden] { display: none; }
+.chapter-drawer {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+}
+.drawer-scrim {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  background: #102231ad;
+}
+.drawer-sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: min(78vh, 650px);
+  overflow: auto;
+  padding: 14px 13px calc(20px + env(safe-area-inset-bottom));
+  border: 3px solid #76503a;
+  border-bottom: 0;
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, #fff5dc, #ecd3a6);
+  box-shadow: 0 -8px 28px #1022317d;
+}
+.drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.drawer-head small { display: block; color: #806047; font-size: 10px; font-weight: 800; }
+.drawer-head h2 { margin: 3px 0 0; color: #563827; font-size: 20px; letter-spacing: 1px; }
+.drawer-close {
+  width: 36px;
+  height: 36px;
+  border: 2px solid #9c7153;
+  border-radius: 50%;
+  background: #fff3d2;
+  box-shadow: 0 2px 0 #875d43;
+  color: #70472e;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1;
+}
+.drawer-note { margin: 7px 0 9px; color: #765844; font-size: 10px; }
+.chapter-drawer .stage-map {
+  position: static;
+  display: grid;
+  margin: 0;
+  gap: 7px;
+}
+.chapter-drawer .stage-card { min-height: 50px; }
+.chapter-drawer-open .home-scroll { overflow: hidden; }
+.home-scroll { padding-bottom: 82px; }
+.chapter-map-card { min-height: 185px; }
+.chapter-map-card .boss-sigil { top: 56px; width: 80px; height: 80px; font-size: 43px; }
+.chapter-map-card .boss-label { top: 147px; }
+.home-tip { display: none; }
+
+.fold-card {
+  margin: 0 0 10px;
+  overflow: hidden;
+  border: 2px solid #b88257;
+  border-radius: 14px;
+  background: #fff6dfde;
+  box-shadow: 0 3px 0 #a97551;
+}
+.fold-card summary {
+  min-height: 44px;
+  padding: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  list-style: none;
+  color: #67442f;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 1000;
+}
+.fold-card summary::-webkit-details-marker { display: none; }
+.fold-card summary::after { content: "⌄"; margin-left: -6px; color: #a56c42; font-size: 17px; transition: transform .16s ease; }
+.fold-card[open] summary::after { transform: rotate(180deg); }
+.fold-card summary small { margin-left: auto; color: #8a654b; font-size: 10px; font-weight: 800; }
+.fold-content { padding: 0 10px 10px; border-top: 1px dashed #caa77e; }
+.fold-content .card-note { margin: 8px 0; }
+.stats-detail { padding-top: 4px; }
+.stats-detail p {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  padding: 8px 1px;
+  border-bottom: 1px dashed #d4b38b;
+  color: #76523a;
+  font-size: 11px;
+}
+.stats-detail p:last-child { border-bottom: 0; }
+.stats-detail b { color: #284b54; }
+@media (max-height: 690px) {
+  .chapter-map-card { min-height: 174px; }
+  .chapter-map-card .boss-sigil { top: 50px; width: 72px; height: 72px; font-size: 38px; }
+  .chapter-map-card .boss-label { top: 137px; }
+  .chapter-progress-toggle { min-height: 38px; margin-top: 7px; }
+  .stage-brief { margin-top: 8px; }
+  .formation { margin-top: 7px; }
+  .start-btn { min-height: 52px; margin-top: 8px; }
+}
+/* 首页首次法器引导仅保留一个轻量入口，避免挤占进入试炼的首屏位置。 */
+.equipment-guide {
+  min-height: 43px;
+  margin: 8px 3px 0;
+  padding: 6px 8px;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 6px;
+  border-radius: 12px;
+  box-shadow: 0 2px 0 #a98564;
+}
+.equipment-guide-seal { width: 26px; height: 26px; font-size: 14px; }
+.equipment-guide-copy b { font-size: 10px; }
+.equipment-guide-copy p, .equipment-guide-copy small { display: none; }
+.equipment-guide-btn { padding: 6px 7px; font-size: 9px; }
