@@ -691,6 +691,40 @@ P1_DEFAULT = {
     ctx.fillStyle = "#23304b"; ctx.beginPath(); ctx.arc(x, y - 25, 16, Math.PI, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 16, y - 26, 32, 6);
     ctx.fillStyle = "#fff0be"; ctx.fillRect(x - 9, y - 24, 18, 3); ctx.fillStyle = "#25314a"; ctx.fillRect(x - 8, y - 18, 4, 2); ctx.fillRect(x + 4, y - 18, 4, 2); ctx.restore();
   }
+  function drawPetSprite() {
+    const pet = activePetConfig();
+    if (!pet) return;
+    const c = cs();
+    const bob = Math.sin(performance.now() / 180) * 3;
+    const x = clamp(B.player.x + 43, 28, c.w - 28);
+    const y = clamp(B.player.y - 18 + bob, 78, c.h - 142);
+    const skillReady = B.petSkillCooldown <= 0;
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.fillStyle = "#142e36a8";
+    ctx.beginPath(); ctx.ellipse(0, 18, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowColor = skillReady ? "#a8f4b1" : "#78bea0";
+    ctx.shadowBlur = skillReady ? 15 : 8;
+    ctx.fillStyle = "#c9f1b2aa";
+    ctx.beginPath(); ctx.arc(0, 0, 22, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = "#438a70";
+    ctx.strokeStyle = "#254d4d";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-5, 1); ctx.lineTo(-27, -12); ctx.lineTo(-18, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(5, 1); ctx.lineTo(27, -12); ctx.lineTo(18, 10); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#74bd95";
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 15, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = "#f3d273";
+    ctx.beginPath(); ctx.moveTo(8, -1); ctx.lineTo(18, 3); ctx.lineTo(8, 7); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = "#fff4c7";
+    ctx.beginPath(); ctx.arc(-4, -4, 2.2, 0, Math.PI * 2); ctx.arc(4, -4, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#eff8d0";
+    ctx.font = "bold 9px sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(pet.name, 0, -28);
+    ctx.restore();
+  }
   function drawEnemySprite(e) {
     const r = e.r, isBird = e.boss && e.kind === "chapter", isElite = e.boss && e.kind === "elite";
     ctx.save(); ctx.translate(e.x, e.y); ctx.fillStyle = "#162f30aa"; ctx.beginPath(); ctx.ellipse(0, r * 0.72, r * 0.9, r * 0.28, 0, 0, Math.PI * 2); ctx.fill();
@@ -723,7 +757,7 @@ P1_DEFAULT = {
   function draw() {
     if (!ctx) return;
     const { w, h } = cs(); ctx.clearRect(0, 0, w, h); drawBattleScene(w, h);
-    B.drops.forEach(drawDrop); drawPlayerSprite(B.player.x, B.player.y); B.enemies.forEach(drawEnemySprite); B.swords.forEach(drawSwordSprite);
+    B.drops.forEach(drawDrop); drawPetSprite(); drawPlayerSprite(B.player.x, B.player.y); B.enemies.forEach(drawEnemySprite); B.swords.forEach(drawSwordSprite);
   }
   function loop(t) {
     if (!B.running) return;

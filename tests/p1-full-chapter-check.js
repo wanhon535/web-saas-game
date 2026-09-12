@@ -1,6 +1,6 @@
 /**
  * P1 第一章完整版客户端回归检查。
- * 覆盖关卡全量配置、章节推进、精英/Boss 奖励、御兽迁移、培养与章节结算。
+ * 覆盖关卡全量配置、章节推进、精英/Boss 奖励、御兽迁移、培养、战斗可见性与章节结算。
  * 运行：node .\tests\p1-full-chapter-check.js
  */
 const fs = require('fs');
@@ -49,6 +49,7 @@ for (let i = 0; i < stages.length - 1; i += 1) { fresh.P.chapterProgress.cleared
 assert(stages[5].type === 'elite' && stages[5].boss.name === '荒原石甲兽' && stages[5].boss.summonCount === 3, '1-06 配置精英首领和召唤机制');
 assert(stages[8].type === 'boss' && stages[8].capture.tutorialFixedSuccess && stages[8].firstClear.pet === 'xunmuQingque', '1-09 配置首次必成结契与寻木青雀奖励');
 assert(stages[9].type === 'story', '1-10 为非战斗章节结算节点');
+assert(gameSource.includes('function drawPetSprite()') && gameSource.includes('drawPetSprite(); drawPlayerSprite'), '已出战御兽会在战斗 Canvas 中实体绘制并位于主角层之前');
 
 const rewardTest = boot();
 rewardTest.B.stage = rewardTest.stageById('1-04');
