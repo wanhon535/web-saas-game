@@ -1576,3 +1576,32 @@ button:active {
 .equipment-guide-copy b { font-size: 10px; }
 .equipment-guide-copy p, .equipment-guide-copy small { display: none; }
 .equipment-guide-btn { padding: 6px 7px; font-size: 9px; }
+
+/* 法宝页：固定主武器仅展示状态，不与可替换装备争夺大格位。 */
+.equip-slots > .weapon-strip {
+  grid-column: 1 / -1;
+  min-height: 43px;
+  aspect-ratio: auto;
+  padding: 6px 8px;
+  flex-direction: row;
+  justify-content: flex-start;
+  gap: 7px;
+  background: linear-gradient(100deg, #d9efe9, #fff2cb);
+  font-size: 22px;
+  text-align: left;
+}
+.weapon-strip i { font-style: normal; }
+.weapon-strip > div { min-width: 0; display: grid; gap: 1px; }
+.weapon-strip small { margin: 0; color: #8a654b; font-size: 8px; }
+.weapon-strip b { overflow: hidden; color: #543725; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.weapon-strip em {
+  margin-left: auto;
+  padding: 3px 5px;
+  border-radius: 7px;
+  background: #d6ebce;
+  color: #5f8254;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
