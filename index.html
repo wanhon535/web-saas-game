@@ -34,30 +34,34 @@
             <div class="boss-label">
               章节 Boss · 寻木青雀<small>完成 1-08 后开放首次结契</small>
             </div>          </section>
-          <button
-            id="chapterDrawerToggle"
-            class="chapter-progress-toggle"
-            data-action="toggle-chapter-drawer"
-            aria-controls="chapterDrawer"
-            aria-expanded="false"
-          >
-            <span>第一章进度 <b id="chapterProgressText">0 / 10</b></span>
-            <small>查看全部关卡 ›</small>
-          </button>
-          <section
-            id="stageBrief"
-            class="stage-brief"
-            aria-live="polite"
-          ></section>
-          <section id="equipmentGuide" class="equipment-guide" aria-live="polite" hidden></section>
-          <section class="formation">
-            <b>出战：万剑真君</b>
-            <div class="mini-pet" id="formationPet">✦</div>
-            <span id="formationState">未结契灵宠 · 初始一柄飞剑</span>
+          <section class="home-command-deck" aria-label="当前试炼">
+            <button
+              id="chapterDrawerToggle"
+              class="chapter-progress-toggle"
+              data-action="toggle-chapter-drawer"
+              aria-controls="chapterDrawer"
+              aria-expanded="false"
+            >
+              <span>第一章进度 <b id="chapterProgressText">0 / 10</b></span>
+              <small>关卡总览 ›</small>
+            </button>
+            <section
+              id="stageBrief"
+              class="stage-brief"
+              aria-live="polite"
+            ></section>
+            <section id="equipmentGuide" class="equipment-guide" aria-live="polite" hidden></section>
+            <div class="home-action-row">
+              <section class="formation">
+                <b>本次出战</b>
+                <div class="mini-pet" id="formationPet">✦</div>
+                <span id="formationState">万剑真君 · 初始一柄飞剑</span>
+              </section>
+              <button id="stageStart" class="start-btn" data-action="start">
+                进入试炼<small>完成当前试炼，解锁下一节点</small>
+              </button>
+            </div>
           </section>
-          <button id="stageStart" class="start-btn" data-action="start">
-            进入试炼<small>完成当前试炼，解锁下一节点</small>
-          </button>          <p class="home-tip"><b>推进目标</b> · 完成当前试炼，沿荒原古道前往寻木巢穴。</p>
         </main>
         <aside id="chapterDrawer" class="chapter-drawer" hidden>
           <button class="drawer-scrim" data-action="close-chapter-drawer" aria-label="关闭章节列表"></button>
@@ -88,16 +92,19 @@
             <div class="resource">🪙 <span class="gold-value">8800</span></div>
           </div>
         </header>
-        <main class="page-body">
-          <h1 class="page-title">法宝仙匣</h1>
-          <p class="page-subtitle">以剑镇妖，以宝护道</p>
-          <section class="hero-card">
+        <main class="page-body equipment-page">
+          <div class="page-heading-row">
+            <div><h1 class="page-title">法宝仙匣</h1><p class="page-subtitle">以剑镇妖，以宝护道</p></div>
+            <span class="page-seal">剑</span>
+          </div>
+          <section class="hero-card equipment-hero">
             <div class="hero-art">仙</div>
             <div>
+              <small class="hero-kicker">天衍剑宗 · 末代宗主</small>
               <h2>万剑真君</h2>
-              <p>守住护宗大阵，斩尽荒原妖潮。</p>
-              <strong>剑意 <span id="powerValue">126</span></strong>
+              <p>本命飞剑与护身法器均在此配置。</p>
             </div>
+            <strong>剑意 <span id="powerValue">126</span></strong>
           </section>
           <section class="paper-card material-card">
             <div class="material-copy">
@@ -107,6 +114,7 @@
             <strong id="swordIronValue">0</strong>
           </section>
           <section class="paper-card equip-layout">
+            <header class="equipment-panel-head"><b>当前法宝</b><small>固定属性即时生效</small></header>
             <div class="equip-slots">
               <div class="weapon-strip">
                 <i>🗡️</i>
@@ -116,15 +124,13 @@
               <div id="gearSlots" class="gear-slot-list"></div>
             </div>
             <div class="stats">
-              <p>飞剑伤害 <b><span id="damageValue">16</span><small>基础 <span id="baseDamageValue">16</span></small></b></p>
-              <p>护阵上限 <b id="wallMaxValue">1200</b></p>
-              <p>仙石结算 <b id="goldBonusValue">+0%</b></p>
-              <button class="gold-btn" data-action="upgrade">
-                祭炼飞剑<small
-                  >消耗 <span id="upgradeCost">480</span> 仙石</small
-                >
-              </button>
+              <p><small>飞剑伤害</small><b><span id="damageValue">16</span><em>基础 <span id="baseDamageValue">16</span></em></b></p>
+              <p><small>护阵上限</small><b id="wallMaxValue">1200</b></p>
+              <p><small>仙石结算</small><b id="goldBonusValue">+0%</b></p>
             </div>
+            <button class="gold-btn" data-action="upgrade">
+              祭炼飞剑<small>消耗 <span id="upgradeCost">480</span> 仙石</small>
+            </button>
           </section>
           <details class="fold-card stats-fold">
             <summary><span>属性详情</span><small>攻击、飞剑、吸附</small></summary>
@@ -164,28 +170,31 @@
             <div class="resource">🍶 <span id="gourdPet">3</span></div>
           </div>
         </header>
-        <main class="page-body">
-          <h1 class="page-title">万灵御兽录</h1>
-          <p class="page-subtitle">妖兽可诛，亦可结契</p>
-          <section class="pet-altar">
-            <div class="pet-orb" id="petFace">✦</div>
-            <p id="petState">
-              <b>尚未缔结灵宠</b><br />于首领虚弱时祭出镇妖葫芦。
-            </p>
+        <main class="page-body pet-page">
+          <div class="page-heading-row">
+            <div><h1 class="page-title">万灵御兽录</h1><p class="page-subtitle">妖兽可诛，亦可结契</p></div>
+            <span class="page-seal pet-seal">御</span>
+          </div>
+          <section class="pet-altar pet-showcase">
+            <div class="pet-showcase-head"><small>当前出战</small><span>结契御兽</span></div>
+            <div class="pet-showcase-body">
+              <div class="pet-orb" id="petFace">✦</div>
+              <p id="petState">
+                <b>尚未缔结灵宠</b><br />于首领虚弱时祭出镇妖葫芦。
+              </p>
+            </div>
           </section>
-          <section class="paper-card">
-            <p id="petDesc">
-              P0
-              仅开放「寻木青雀」一只可抓捕灵兽。抓捕失败后首领将狂暴，但斩杀可获得额外法器掉落。
-            </p>
+          <section class="paper-card pet-skill-card">
+            <span class="pet-skill-mark">✦</span>
+            <div><small>协战技能</small><p id="petDesc">完成 1-09 的首次结契引导后，寻木青雀可实际协战。</p></div>
           </section>
           <section class="paper-card pet-growth-card">
-            <div class="pet-growth-head"><b>结契培养</b><span>青雀灵羽 <i id="petFeather">0</i></span></div>
-            <p>御兽等级 <b id="petLevel">未结契</b></p>
-            <p id="petSkillInfo">尚未开放协战技能</p>
+            <div class="pet-growth-head"><b>结契培养</b><span>灵羽 <i id="petFeather">0</i></span></div>
+            <div class="pet-metric"><small>御兽等级</small><b id="petLevel">未结契</b></div>
+            <div class="pet-metric pet-skill-metric"><small>主动技能</small><b id="petSkillInfo">尚未开放协战技能</b></div>
             <button id="petUpgrade" class="gold-btn small-gold" data-action="upgrade-pet">培养御兽<small>180 仙石 · 1 青雀灵羽</small></button>
           </section>
-          <section class="paper-card locked">更多御兽将随主线逐步开放。</section>
+          <p class="pet-unlock-note">更多御兽将随主线逐步开放。</p>
         </main>
         <nav class="tabbar">
           <button class="tab" data-nav="home">⛩️<small>荒原</small></button
