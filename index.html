@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
     />
-    <title>修仙御兽：万剑封妖｜P1.1 第一章</title>
+    <title>修仙御兽：万剑封妖｜P1 第一章完整版</title>
     <link rel="stylesheet" href="p0.css" />
   </head>
   <body>
@@ -26,13 +26,13 @@
           <section class="chapter-card chapter-map-card">
             <div class="mist"></div>
             <div class="chapter-heading">
-              <small>第一章 · 普通试炼</small>
+              <small>第一章 · 幽冥荒原</small>
               <h1>幽 冥 荒 原</h1>
               <p>妖气冲霄，唯万剑可封</p>
             </div>
             <div class="boss-sigil">🦅</div>
             <div class="boss-label">
-              守关大妖 · 寻木青雀<small>完成普通试炼后，于后续内容开放</small>
+              章节 Boss · 寻木青雀<small>完成 1-08 后开放首次结契</small>
             </div>
             <div
               id="stageMap"
@@ -55,9 +55,7 @@
             进入试炼<small>守住护宗大阵，获得第一章养成资源</small>
           </button>
           <p class="p0-note">
-            <b>第一章推进：</b>选择普通关 → 守线战斗 → 获得仙石与剑胚残铁 →
-            解锁下一关。
-            寻木青雀抓捕玩法已保留，待本章普通关完成后于后续节点接回。
+            <b>第一章推进：</b>顺序推进 1-01 至 1-10：普通试炼 → 精英石甲兽 → 青雀结契 → 章节结算。首通可取得固定法器、养成材料与首只御兽。
           </p>
         </main>
         <nav class="tabbar">
@@ -158,9 +156,13 @@
               仅开放「寻木青雀」一只可抓捕灵兽。抓捕失败后首领将狂暴，但斩杀可获得额外法器掉落。
             </p>
           </section>
-          <section class="paper-card locked">
-            🔒 灵兽升星、编队、图鉴等后续开放，本期不做。
+          <section class="paper-card pet-growth-card">
+            <div class="pet-growth-head"><b>结契培养</b><span>青雀灵羽 <i id="petFeather">0</i></span></div>
+            <p>御兽等级 <b id="petLevel">未结契</b></p>
+            <p id="petSkillInfo">尚未开放协战技能</p>
+            <button id="petUpgrade" class="gold-btn small-gold" data-action="upgrade-pet">培养御兽<small>180 仙石 · 1 青雀灵羽</small></button>
           </section>
+          <section class="paper-card locked">🔒 第二只御兽、切换与羁绊为后续内容，本章不做。</section>
         </main>
         <nav class="tabbar">
           <button class="tab" data-nav="home">⛩️<small>荒原</small></button
@@ -214,9 +216,7 @@
             <button data-action="hint">
               🗡️ 自动御剑<small>初始 1 柄 · 0.85 秒</small></button
             ><b>本局仙石<span id="runGold">0</span></b
-            ><button data-action="hint">
-              🧭 移动阵眼<small>拖动主角 / 方向键</small>
-            </button>
+            ><button data-action="pet-skill" id="petSkill" class="pet-skill" hidden>✦ 青翎回风<small>寻木青雀协战</small></button><button data-action="hint">🧭 移动阵眼<small>拖动主角 / 方向键</small></button>
           </div>
         </div>
       </section>

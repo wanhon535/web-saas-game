@@ -1345,3 +1345,32 @@ button:active {
   white-space: nowrap;
 }
 .equipment-guide-btn:active { transform: translateY(1px); box-shadow: 0 1px 0 #493126; }
+
+/* P1｜第一章完整版：单宠协战与培养展示。 */
+.pet-growth-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 7px 10px;
+  align-items: center;
+}
+.pet-growth-card > div { min-width: 0; }
+.pet-growth-card b, .pet-growth-card small { display: block; }
+.pet-growth-card small, .pet-skill-card small { margin-top: 3px; color: #8a6243; font-size: 10px; line-height: 1.35; }
+.pet-growth-card > strong { color: #a76d30; font-size: 15px; white-space: nowrap; }
+.pet-growth-card .small-btn { grid-column: 1 / -1; justify-self: stretch; }
+.pet-skill-card p { margin: 6px 0 4px; color: #513a4d; font-weight: 900; font-size: 12px; }
+.pet-skill {
+  border-color: #4a8a82 !important;
+  background: linear-gradient(145deg, #c6eee0, #83c5b8) !important;
+  color: #173f3b !important;
+}
+.pet-skill:disabled { opacity: .68; filter: saturate(.65); }
+.battle-info { flex-wrap: wrap; }
+.battle-info .pet-skill { flex: 1 1 32%; }
+.pet-growth-head { display: flex; justify-content: space-between; align-items: center; grid-column: 1 / -1; }
+.pet-growth-head span { color: #8a6243; font-size: 11px; font-weight: 900; }
+.pet-growth-head i { color: #a76d30; font-style: normal; }
+.pet-growth-card > p { margin: 0; font-size: 11px; color: #64432d; }
+.pet-growth-card > p:nth-of-type(2) { grid-column: 1 / -1; color: #7d5945; line-height: 1.45; }
+.pet-growth-card .small-gold { grid-column: 1 / -1; width: 100%; margin-top: 2px; }
+.pet-growth-card .small-gold:disabled { opacity: .55; filter: grayscale(.45); }
