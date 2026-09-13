@@ -1137,7 +1137,7 @@ P1_DEFAULT = {
     if (a === "close-home-placeholder") closeHomePlaceholder();
     if (a === "open-home-placeholder") { open("home"); openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon); }
     if (a === "toggle-chapter-drawer") toggleChapterDrawer();
-    if (a === "open-chapter-home") { open("home"); toggleChapterDrawer(true); }
+    if (a === "open-home") open("home");
     if (a === "close-chapter-drawer") toggleChapterDrawer(false);
     if (a === "start") start(selectedStageId);
     if (a === "select-stage") selectStage(b.dataset.stageId);
