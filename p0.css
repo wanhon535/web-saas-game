@@ -789,6 +789,55 @@ button:active {
   display: block;
   animation: rise 0.25s ease-out;
 }
+.revive-panel {
+  position: absolute;
+  z-index: 8;
+  left: 22px;
+  right: 22px;
+  bottom: 166px;
+  display: none;
+  padding: 11px;
+  border: 2px solid #b46f48;
+  border-radius: 15px;
+  background: linear-gradient(145deg, #fff1cfef, #e9c691f2);
+  box-shadow: 0 4px 0 #6c442f, 0 12px 28px #1b273888;
+  color: #5d3629;
+  text-align: center;
+  font-size: 14px;
+}
+.revive-panel.show {
+  display: block;
+  animation: rise 0.25s ease-out;
+}
+.revive-panel p {
+  margin: 4px 0 9px;
+  color: #80503a;
+  font-size: 10px;
+  line-height: 1.45;
+}
+.revive-panel > div {
+  display: flex;
+  gap: 8px;
+}
+.revive-panel button {
+  flex: 1;
+  padding: 7px 4px;
+  border: 2px solid #a76c3f;
+  border-radius: 10px;
+  background: linear-gradient(#fff9d9, #eccb92);
+  box-shadow: 0 2px 0 #976037;
+  color: #5e3a27;
+  font-size: 12px;
+  font-weight: 900;
+}
+.revive-panel button small {
+  font-size: 9px;
+}
+.revive-panel button:disabled {
+  opacity: 0.52;
+  filter: grayscale(0.45);
+  box-shadow: none;
+}
 .catch-panel p {
   font-size: 10px;
   margin: 3px 0 7px;
@@ -1853,9 +1902,6 @@ button:active {
 .wall.is-broken { border-color: #dd695c; background: #4e2c33d9; }
 .wall.is-broken .green i { background: #7c4343; }
 .wall.is-broken small { color: #ffc0a4; }
-.wall.is-compromised { border-color: #d9ad5b; background: #4b4230d9; }
-.wall.is-compromised .green i { background: linear-gradient(90deg, #d88455, #f0c564); }
-.wall.is-compromised small { color: #ffe0a1; }
 @media (max-width: 430px) {
   .battle-bottom { min-height: 164px; }
   .battle-vitals { gap: 5px; }
@@ -1865,4 +1911,5 @@ button:active {
   .combat-vital small { font-size: 7px; }
   .battle-actions { margin-top: 6px; }
   .catch-panel { bottom: 167px; }
+  .revive-panel { bottom: 184px; }
 }

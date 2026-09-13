@@ -93,7 +93,10 @@ P1_DEFAULT = {
     MAGNET_SPEED = 9,
     PLAYER_MAX_HP = 260,
     WALL_REPAIR_DELAY = 2.4,
-    WALL_REPAIR_PER_SECOND = 20;
+    WALL_REPAIR_PER_SECOND = 20,
+    WALL_RECONSTRUCT_DELAY = 5,
+    WALL_RECONSTRUCT_PER_SECOND = 160,
+    REVIVE_HP_RATIO = 0.5;
   const B = {
     running: false,
     paused: false,
@@ -111,6 +114,8 @@ P1_DEFAULT = {
     wallBroken: false,
     wallQuietFor: 0,
     wallUnderAttack: false,
+    freeReviveUsed: false,
+    paidReviveCount: 0,
     gold: 0,
     damage: 0,
     boss: null,
@@ -399,27 +404,58 @@ P1_DEFAULT = {
     $("wallHpText").textContent = `${Math.ceil(B.hp)} / ${B.maxHp}`;
     $("wallHpBar").style.width = p + "%";
     const state = $("wallState"), hud = $("wallHud");
-    const repairing = !B.wallUnderAttack && B.hp < B.maxHp && B.wallQuietFor >= WALL_REPAIR_DELAY;
+    const reconstructing = B.hp <= 0;
+    const repairDelay = reconstructing ? WALL_RECONSTRUCT_DELAY : WALL_REPAIR_DELAY;
+    const repairing = !B.wallUnderAttack && B.hp < B.maxHp && B.wallQuietFor >= repairDelay;
     if (state) {
-      state.textContent = B.hp <= 0
-        ? (B.wallUnderAttack ? "护阵已破 · 正受攻击" : repairing ? "护阵已破 · 阵纹重构中" : "护阵已破 · 等待修复")
-        : B.wallBroken
-          ? (repairing ? "护阵重构中 · 复生资格失效" : "护阵曾破 · 不可复生")
-          : B.wallUnderAttack ? "护阵受袭" : repairing ? "阵纹自修复中" : "护阵运转正常";
+      state.textContent = reconstructing
+        ? (B.wallUnderAttack ? "护阵已破 · 敌方持续压阵" : repairing ? "护阵已破 · 阵纹快速重构中" : "护阵已破 · " + Math.ceil(Math.max(0, WALL_RECONSTRUCT_DELAY - B.wallQuietFor)) + " 秒后重构")
+        : B.wallUnderAttack ? "护阵受袭" : repairing ? "阵纹缓慢自修复中" : "护阵运转正常";
     }
-    hud?.classList?.toggle("is-broken", B.hp <= 0);
-    hud?.classList?.toggle("is-compromised", Boolean(B.wallBroken && B.hp > 0));
+    hud?.classList?.toggle("is-broken", reconstructing);
+    hud?.classList?.remove?.("is-compromised");
   }
   function playerHud() {
     const p = Math.max(0, (B.player.hp / B.player.maxHp) * 100);
     $("playerHpText").textContent = `${Math.ceil(B.player.hp)} / ${B.player.maxHp}`;
     $("playerHpBar").style.width = p + "%";
     const state = $("playerState"), hud = $("playerHud");
-    if (state) state.textContent = B.player.dead ? (B.wallBroken ? "真君陨落 · 阵破终局" : "真君战败 · 保留复生机会") : "御剑守阵";
+    if (state) state.textContent = B.player.dead ? (B.hp <= 0 ? "真君战败 · 等待护阵重构" : "真君战败 · 可执行复生") : "御剑守阵";
     hud?.classList?.toggle("is-dead", Boolean(B.player.dead));
   }
   function bothDefensesLost() {
-    return Boolean(B.player.dead && B.wallBroken);
+    return Boolean(B.player.dead && B.hp <= 0);
+  }
+  function canRevive() {
+    return Boolean(B.running && !B.finished && B.player.dead && B.hp > 0);
+  }
+  function reviveHud() {
+    const panel = $("revivePanel"), title = $("reviveTitle"), desc = $("reviveDesc"), free = $("freeRevive"), paid = $("paidRevive");
+    const show = Boolean(B.running && !B.finished && B.player.dead);
+    panel?.classList?.toggle("show", show);
+    if (!show) return;
+    const available = canRevive();
+    if (title) title.textContent = available ? "万剑真君战败" : "护宗大阵已破";
+    if (desc) desc.textContent = available ? "护阵尚存，可选择复生后继续守阵。" : "等待护宗大阵停止受袭并完成重构，复生资格将自动恢复。";
+    if (free) { free.disabled = !available || B.freeReviveUsed; free.innerHTML = B.freeReviveUsed ? "免费复生<br /><small>本局已使用</small>" : "免费复生<br /><small>本局剩余 1 次</small>"; }
+    if (paid) { paid.disabled = !available; paid.innerHTML = "付费复生<br /><small>内测模拟 · 不限次数</small>"; }
+  }
+  function revivePlayer(mode) {
+    if (!canRevive()) { toast("护阵尚未重构，暂时无法复生"); return false; }
+    if (mode === "free" && B.freeReviveUsed) { toast("本局免费复生已使用"); return false; }
+    if (mode === "free") B.freeReviveUsed = true;
+    else if (mode === "paid") B.paidReviveCount += 1;
+    else return false;
+    B.player.hp = Math.ceil(B.player.maxHp * REVIVE_HP_RATIO);
+    B.player.dead = false;
+    B.player.dragging = false;
+    B.player.hit = 0.4;
+    B.hostileShots = B.hostileShots.filter((shot) => shot.target !== "player");
+    playerHud();
+    reviveHud();
+    updatePetSkillButton();
+    msg("剑意重燃", mode === "free" ? "已使用本局免费复生，恢复 50% 生命" : "内测模拟复生成功，恢复 50% 生命");
+    return true;
   }
   function resolveDefenseFailure() {
     if (!bothDefensesLost() || B.finished) return false;
@@ -440,7 +476,8 @@ P1_DEFAULT = {
     B.player.dragging = false;
     B.swords = [];
     playerHud();
-    msg("万剑真君战败", B.wallBroken ? "护阵曾被击破，试炼终止" : "护阵尚存，保留复生机会；当前进入观战", true);
+    reviveHud();
+    msg("万剑真君战败", B.hp <= 0 ? "护阵已破，等待重构后才可复生" : "护阵尚存，可选择复生；当前进入观战", true);
     resolveDefenseFailure();
     return true;
   }
@@ -450,10 +487,11 @@ P1_DEFAULT = {
     B.wallQuietFor = 0;
     B.hp = Math.max(0, B.hp - Math.max(0, amount));
     const firstBreak = B.hp <= 0 && !B.wallBroken;
-    if (B.hp <= 0) B.wallBroken = true;
+    B.wallBroken = B.hp <= 0;
     wall();
+    reviveHud();
     if (firstBreak) {
-      msg("护宗大阵已破", B.player.dead ? "真君已战败，试炼终止" : "真君仍可继续斩妖，但已失去复生资格", true);
+      msg("护宗大阵已破", B.player.dead ? "真君已战败，试炼终止" : "真君仍可继续斩妖；停战约 5 秒后可快速重构", true);
     } else if (B.hp > 0) {
       msg(source, `护阵 -${Math.ceil(amount)}`);
     }
@@ -503,10 +541,10 @@ P1_DEFAULT = {
     const stage = stageById(stageId);
     if (!stage || !isStageUnlocked(stage)) { toast("此关尚未解锁"); return; }
     B.stage = stage; B.isNormalStage = stage.type === "normal"; B.running = false; B.paused = false; B.last = performance.now(); B.fire = 0.6; B.spawn = 0; B.wave = 0; B.queue = []; B.enemies = []; B.swords = []; B.drops = []; B.hostileShots = [];
-    B.maxHp = effectiveWallMaxHp(); B.hp = B.maxHp; B.wallBroken = false; B.wallQuietFor = 0; B.wallUnderAttack = false; B.gold = 0; B.damage = 0; B.boss = null; B.bossCreated = false; B.catchShown = false; B.catchDone = false; B.finished = false; B.pendingFinish = false; B.outcome = ""; B.petSkillCooldown = 0; B.eliteSummon = 0;
+    B.maxHp = effectiveWallMaxHp(); B.hp = B.maxHp; B.wallBroken = false; B.wallQuietFor = 0; B.wallUnderAttack = false; B.freeReviveUsed = false; B.paidReviveCount = 0; B.gold = 0; B.damage = 0; B.boss = null; B.bossCreated = false; B.catchShown = false; B.catchDone = false; B.finished = false; B.pendingFinish = false; B.outcome = ""; B.petSkillCooldown = 0; B.eliteSummon = 0;
     const chapter = chapterConfig(stage);
     if (stage.type === "story") { B.outcome = `${chapter.name}结算`; finish(true); return; }
-    B.running = true; $("battleTitle").textContent = `${chapter.eyebrow} · ${stage.title}`; $("bossHud").classList.remove("show"); $("catchPanel").classList.remove("show"); $("runGold").textContent = 0;
+    B.running = true; $("battleTitle").textContent = `${chapter.eyebrow} · ${stage.title}`; $("bossHud").classList.remove("show"); $("catchPanel").classList.remove("show"); $("revivePanel").classList.remove("show"); $("runGold").textContent = 0;
     wall(); open("battle"); size(); resetPlayer(); wave(1); msg(`踏入 ${stage.title}`, `「${stage.intro.speaker}」${stage.intro.text}`); requestAnimationFrame(loop);
   }
   function wave(n) {
@@ -630,7 +668,7 @@ P1_DEFAULT = {
   }
   function applyNormalStageRewards(win) { return applyStageRewards(win); }
   function finish(win) {
-    if (B.finished) return; B.finished = true; B.running = false; $("catchPanel").classList.remove("show");
+    if (B.finished) return; B.finished = true; B.running = false; $("catchPanel").classList.remove("show"); $("revivePanel").classList.remove("show");
     const stageRewards = B.stage ? applyStageRewards(win) : null; const baseEarned = B.gold + (stageRewards ? stageRewards.gold : win ? 80 : 20) + (win && B.outcome === "狂暴后斩杀" ? 40 : 0); const earned = applyGoldBonus(baseEarned); P.gold += earned; P.cleared = win || P.cleared; save();
     const stageChapterName = chapterConfig(B.stage).name; const successTitle = B.outcome === "收服寻木青雀" ? "结契功成" : B.stage?.type === "story" ? `${stageChapterName}告一段落` : B.stage?.type === "elite" ? "精英试炼告捷" : "守阵告捷";
     $("resultTitle").textContent = win ? successTitle : B.outcome === "阵毁身陨" ? "阵毁身陨" : "守阵失守"; const resultChapter = $("resultChapter"); if (resultChapter) resultChapter.textContent = chapterConfig(B.stage).eyebrow;
@@ -677,7 +715,11 @@ P1_DEFAULT = {
       return;
     }
     e.y = wallLine;
-    e.mode = B.hp <= 0 ? "breach" : "siege";
+    if (B.hp <= 0) {
+      e.mode = "breach";
+      return;
+    }
+    e.mode = "siege";
     if (e.wallAttackCooldown <= 0) {
       damageWall(e.wallDamage || 28, e.name + "冲击护阵");
       e.wallAttackCooldown = e.wallInterval || 1.55;
@@ -699,7 +741,7 @@ P1_DEFAULT = {
   function updateBoss(e, dt, c) {
     e.meleeCooldown = Math.max(0, (e.meleeCooldown || 0) - dt);
     e.rangedCooldown = Math.max(0, (e.rangedCooldown || 0) - dt);
-    if (!B.wallBroken) {
+    if (B.hp > 0) {
       e.mode = "guard";
       const anchorX = c.w * 0.5;
       e.x += Math.sign(anchorX - e.x) * Math.min(Math.abs(anchorX - e.x), e.speed * dt);
@@ -716,7 +758,7 @@ P1_DEFAULT = {
     }
     if (e.rangedCooldown <= 0) {
       if (!B.player.dead) fireBossProjectile(e, "player", c);
-      if (!B.wallBroken) fireBossProjectile(e, "wall", c);
+      if (B.hp > 0) fireBossProjectile(e, "wall", c);
       e.rangedCooldown = e.enraged ? 1.55 : 2.25;
       msg(e.name + "施展妖术", B.wallBroken ? "首领已越过破阵缺口" : "远程妖术同时锁定真君与护阵");
     }
@@ -733,7 +775,7 @@ P1_DEFAULT = {
       if (distance <= step + 4) {
         shot.x = shot.targetX;
         shot.y = shot.targetY;
-        if (shot.target === "wall" && !B.wallBroken) damageWall(shot.damage, "Boss 远程轰阵");
+        if (shot.target === "wall" && B.hp > 0) damageWall(shot.damage, "Boss 远程轰阵");
         B.hostileShots.splice(B.hostileShots.indexOf(shot), 1);
       } else if (shot.life <= 0) {
         B.hostileShots.splice(B.hostileShots.indexOf(shot), 1);
@@ -749,9 +791,18 @@ P1_DEFAULT = {
       return false;
     }
     B.wallQuietFor += dt;
-    if (B.hp >= B.maxHp || B.wallQuietFor < WALL_REPAIR_DELAY) return false;
-    B.hp = Math.min(B.maxHp, B.hp + WALL_REPAIR_PER_SECOND * dt);
+    const reconstructing = B.hp <= 0;
+    const delay = reconstructing ? WALL_RECONSTRUCT_DELAY : WALL_REPAIR_DELAY;
+    const rate = reconstructing ? WALL_RECONSTRUCT_PER_SECOND : WALL_REPAIR_PER_SECOND;
+    if (B.hp >= B.maxHp || B.wallQuietFor < delay) return false;
+    B.hp = Math.min(B.maxHp, B.hp + rate * dt);
+    B.wallBroken = B.hp <= 0;
     wall();
+    if (reconstructing && B.hp > 0) {
+      playerHud();
+      reviveHud();
+      msg("护阵重构", "阵纹重燃，真君已恢复复生条件");
+    }
     return true;
   }
   function update(dt) {
@@ -822,7 +873,7 @@ P1_DEFAULT = {
     });
     updateHostileShots(dt);
     repairWallIfQuiet(dt);
-    if (!B.wallBroken && B.wallUnderAttack) wall();
+    if (B.hp > 0 && B.wallUnderAttack) wall();
     B.swords.slice().forEach((sword) => {
       sword.life -= dt;
       if (!sword.target || !B.enemies.includes(sword.target)) {
@@ -1075,6 +1126,8 @@ P1_DEFAULT = {
       else $("battleMsg").classList.remove("show");
     }
     if (a === "catch") capture(b.dataset.tool);
+    if (a === "revive-free") revivePlayer("free");
+    if (a === "revive-paid") revivePlayer("paid");
     if (a === "decline-catch") declineCapture();
     if (a === "hint") toast(b.textContent.replace(/\s+/g, " ").trim());
     if (a === "back-home") open("home");
