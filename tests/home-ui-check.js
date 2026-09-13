@@ -36,5 +36,9 @@ assert(css.includes('.home-quick-nav { position: absolute;') && css.includes('bo
 assert(game.includes('function toggleHomePromos(show)') && game.includes('function openHomePlaceholder(title, icon ='), '首页收纳与占位窗口交互已接入');
 assert(game.includes('setText("jadeTop", "0")') && game.includes('setText("homePowerValue", currentPower())'), '首页资产与修为展示由现有数据刷新');
 assert(!game.includes('仙石'), '玩家可见的游戏文本已统一使用灵石');
+const petMarkup = html.match(/<section id="pet"[\s\S]*?<section id="battle"/)?.[0] || '';
+assert(petMarkup.includes('class="topbar pet-topbar"') && petMarkup.includes('<b>灵宠</b>'), '灵宠页使用独立的主题标题栏');
+assert(!petMarkup.includes('<div class="page-heading-row">'), '灵宠页不再显示旧版重复标题栏');
+assert(css.includes('#pet .pet-topbar') && css.includes('#pet .pet-avatar') && css.includes('#pet .pet-resources'), '灵宠页主题标题栏样式存在');
 
 console.log(`首页 UI 检查通过：${assertions} 项断言全部通过。`);
