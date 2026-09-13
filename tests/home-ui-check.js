@@ -45,7 +45,8 @@ assert(petMarkup.includes('id="petQuickNav"') && petMarkup.includes('class="home
 assert(!petMarkup.includes('class="tabbar"') && !petMarkup.includes('>荒原<') && !petMarkup.includes('>法宝<'), '灵宠页不再保留旧三项返回导航');
 for (const label of ['仙坊', '灵宠', '妖隙', '剑域', '宗门']) assert(petMarkup.includes('>' + label + '<'), '灵宠页主导航显示「' + label + '」');
 assert(petMarkup.includes('data-action="open-home"') && !petMarkup.includes('data-action="open-chapter-home"'), '灵宠页妖隙仅返回首页，不自动展开副本面板');
-assert(game.includes('PET_RIFT_CLICK_GUARD_MS = 600') && game.includes('petRiftClickGuardUntil = Date.now() + PET_RIFT_CLICK_GUARD_MS') && game.includes('Date.now() < petRiftClickGuardUntil'), '灵宠页妖隙具有 600 毫秒连续点击保护，防止点击穿透');
+assert(game.includes('RIFT_NAVIGATION_GUARD_MS = 600') && game.includes('function returnHomeFromRift()') && game.includes('riftNavigationGuardUntil = Date.now() + RIFT_NAVIGATION_GUARD_MS') && game.includes('Date.now() < riftNavigationGuardUntil'), '所有非首页妖隙返回均具有 600 毫秒连续点击保护，防止点击穿透');
+assert(game.includes('function returnHomeFromRift() {\n    riftNavigationGuardUntil = Date.now() + RIFT_NAVIGATION_GUARD_MS;\n    toggleChapterDrawer(false);\n    open("home");\n  }'), '妖隙返回首页前会关闭副本选择面板，避免遗留展开状态');assert(game.includes('if (a === "toggle-chapter-drawer") {\n      if (Date.now() < riftNavigationGuardUntil) return;\n      toggleChapterDrawer();\n    }'), '首页妖隙在保护结束后仍保留玩家主动打开副本选择的入口');
 assert(game.includes('a === "open-home-placeholder"') && game.includes('a === "open-home"') && !game.includes('a === "open-chapter-home"'), '灵宠页统一导航可返回对应首页入口');
 
 console.log(`首页 UI 检查通过：${assertions} 项断言全部通过。`);
