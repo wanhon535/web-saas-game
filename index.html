@@ -172,12 +172,12 @@
           </section>
           <p class="pet-unlock-note">更多御兽将随主线逐步开放。</p>
         </main>
-        <nav class="tabbar">
-          <button class="tab" data-nav="home">⛩️<small>荒原</small></button
-          ><button class="tab" data-nav="equip">⚔️<small>法宝</small></button
-          ><button class="tab active" data-nav="pet">
-            🦊<small>灵宠</small>
-          </button>
+        <nav id="petQuickNav" class="home-quick-nav pet-main-nav" aria-label="主要功能">
+          <button data-action="open-home-placeholder" data-placeholder-title="仙坊" data-placeholder-icon="坊"><i>坊</i><span>仙坊</span></button>
+          <button class="active" data-nav="pet"><i>灵</i><span>灵宠</span></button>
+          <button data-action="open-chapter-home"><i>隙</i><span>妖隙</span></button>
+          <button data-action="open-home-placeholder" data-placeholder-title="剑域" data-placeholder-icon="域"><i>域</i><span>剑域</span></button>
+          <button data-action="open-home-placeholder" data-placeholder-title="宗门" data-placeholder-icon="宗"><i>宗</i><span>宗门</span></button>
         </nav>
       </section>
 

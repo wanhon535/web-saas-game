@@ -1132,10 +1132,12 @@ P1_DEFAULT = {
       return;
     }
     let a = b.dataset.action;
-    if (b.dataset.placeholderTitle) openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon);
+    if (b.dataset.placeholderTitle && a !== "open-home-placeholder") openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon);
     if (a === "toggle-home-promos") toggleHomePromos();
     if (a === "close-home-placeholder") closeHomePlaceholder();
+    if (a === "open-home-placeholder") { open("home"); openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon); }
     if (a === "toggle-chapter-drawer") toggleChapterDrawer();
+    if (a === "open-chapter-home") { open("home"); toggleChapterDrawer(true); }
     if (a === "close-chapter-drawer") toggleChapterDrawer(false);
     if (a === "start") start(selectedStageId);
     if (a === "select-stage") selectStage(b.dataset.stageId);

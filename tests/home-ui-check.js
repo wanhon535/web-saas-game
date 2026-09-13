@@ -41,5 +41,9 @@ assert(!petMarkup.includes('class="topbar pet-topbar"') && !petMarkup.includes('
 assert(!petMarkup.includes('<div class="page-heading-row">'), '灵宠页不再显示旧版重复标题栏');
 assert(petMarkup.includes('class="pet-showcase-meta"') && petMarkup.includes('class="pet-gourd-count"') && petMarkup.includes('id="gourdPet"'), '镇妖葫芦数量收纳在当前出战信息栏');
 assert(!css.includes('#pet .pet-topbar') && css.includes('.pet-showcase-meta') && css.includes('.pet-showcase-head .pet-gourd-count'), '灵宠页移除标题栏并保留首屏道具信息样式');
+assert(petMarkup.includes('id="petQuickNav"') && petMarkup.includes('class="home-quick-nav pet-main-nav"'), '灵宠页使用与首页统一的五项主导航');
+assert(!petMarkup.includes('class="tabbar"') && !petMarkup.includes('>荒原<') && !petMarkup.includes('>法宝<'), '灵宠页不再保留旧三项返回导航');
+for (const label of ['仙坊', '灵宠', '妖隙', '剑域', '宗门']) assert(petMarkup.includes('>' + label + '<'), '灵宠页主导航显示「' + label + '」');
+assert(game.includes('a === "open-home-placeholder"') && game.includes('a === "open-chapter-home"') && game.includes('b.dataset.placeholderTitle && a !== "open-home-placeholder"'), '灵宠页统一导航可返回对应首页入口');
 
 console.log(`首页 UI 检查通过：${assertions} 项断言全部通过。`);
