@@ -90,7 +90,10 @@ P1_DEFAULT = {
   const ATTACK_INTERVAL = 0.85,
     MAGNET_RANGE = 380,
     MAGNET_COLLECT_DISTANCE = 18,
-    MAGNET_SPEED = 9;
+    MAGNET_SPEED = 9,
+    PLAYER_MAX_HP = 260,
+    WALL_REPAIR_DELAY = 2.4,
+    WALL_REPAIR_PER_SECOND = 20;
   const B = {
     running: false,
     paused: false,
@@ -102,8 +105,12 @@ P1_DEFAULT = {
     enemies: [],
     swords: [],
     drops: [],
+    hostileShots: [],
     hp: 1200,
     maxHp: 1200,
+    wallBroken: false,
+    wallQuietFor: 0,
+    wallUnderAttack: false,
     gold: 0,
     damage: 0,
     boss: null,
@@ -117,7 +124,7 @@ P1_DEFAULT = {
     pendingFinish: false,
     petSkillCooldown: 0,
     eliteSummon: 0,
-    player: { x: 0, y: 0, targetX: 0, targetY: 0, dragging: false },
+    player: { x: 0, y: 0, targetX: 0, targetY: 0, dragging: false, hp: PLAYER_MAX_HP, maxHp: PLAYER_MAX_HP, dead: false, hit: 0 },
   };
   function save() {
     localStorage.setItem(KEY, JSON.stringify(P));
@@ -351,7 +358,12 @@ P1_DEFAULT = {
     B.player.x = B.player.targetX = clamp(c.w / 2, b.minX, b.maxX);
     B.player.y = B.player.targetY = clamp(c.h - 230, b.minY, b.maxY);
     B.player.dragging = false;
+    B.player.maxHp = PLAYER_MAX_HP;
+    B.player.hp = PLAYER_MAX_HP;
+    B.player.dead = false;
+    B.player.hit = 0;
     keys.clear();
+    playerHud();
   }
   function setPlayerTarget(x, y) {
     let b = playerBounds();
@@ -383,9 +395,61 @@ P1_DEFAULT = {
     canvas.addEventListener("pointercancel", () => (B.player.dragging = false));
   }
   function wall() {
-    let p = Math.max(0, (B.hp / B.maxHp) * 100);
+    const p = Math.max(0, (B.hp / B.maxHp) * 100);
     $("wallHpText").textContent = `${Math.ceil(B.hp)} / ${B.maxHp}`;
     $("wallHpBar").style.width = p + "%";
+    const state = $("wallState"), hud = $("wallHud");
+    if (state) state.textContent = B.wallBroken ? "护阵已破 · 不可复原" : B.wallUnderAttack ? "护阵受袭" : B.hp < B.maxHp && B.wallQuietFor >= WALL_REPAIR_DELAY ? "阵纹自修复中" : "护阵运转正常";
+    hud?.classList?.toggle("is-broken", Boolean(B.wallBroken));
+  }
+  function playerHud() {
+    const p = Math.max(0, (B.player.hp / B.player.maxHp) * 100);
+    $("playerHpText").textContent = `${Math.ceil(B.player.hp)} / ${B.player.maxHp}`;
+    $("playerHpBar").style.width = p + "%";
+    const state = $("playerState"), hud = $("playerHud");
+    if (state) state.textContent = B.player.dead ? (B.wallBroken ? "真君陨落 · 阵破终局" : "真君重伤 · 观战护阵") : "御剑守阵";
+    hud?.classList?.toggle("is-dead", Boolean(B.player.dead));
+  }
+  function bothDefensesLost() {
+    return Boolean(B.player.dead && B.wallBroken);
+  }
+  function resolveDefenseFailure() {
+    if (!bothDefensesLost() || B.finished) return false;
+    B.outcome = "阵毁身陨";
+    finish(false);
+    return true;
+  }
+  function damagePlayer(amount, source = "妖物近身") {
+    if (B.player.dead || !B.running) return false;
+    B.player.hp = Math.max(0, B.player.hp - Math.max(0, amount));
+    B.player.hit = 0.22;
+    playerHud();
+    if (B.player.hp > 0) {
+      msg(source, `真君 -${Math.ceil(amount)} HP`);
+      return true;
+    }
+    B.player.dead = true;
+    B.player.dragging = false;
+    B.swords = [];
+    playerHud();
+    msg("万剑真君重伤", B.wallBroken ? "护阵已破，试炼终止" : "护阵尚存，当前只能观战，待后续复活机制开放", true);
+    resolveDefenseFailure();
+    return true;
+  }
+  function damageWall(amount, source = "妖物攻阵") {
+    if (B.wallBroken || !B.running) return false;
+    B.wallUnderAttack = true;
+    B.wallQuietFor = 0;
+    B.hp = Math.max(0, B.hp - Math.max(0, amount));
+    if (B.hp <= 0) B.wallBroken = true;
+    wall();
+    if (B.wallBroken) {
+      msg("护宗大阵已破", B.player.dead ? "真君已重伤，试炼终止" : "真君仍可继续斩妖，但已失去复活资格", true);
+      resolveDefenseFailure();
+    } else {
+      msg(source, `护阵 -${Math.ceil(amount)}`);
+    }
+    return true;
   }
 
   function bossHud() {
@@ -429,8 +493,8 @@ P1_DEFAULT = {
   function start(stageId = selectedStageId) {
     const stage = stageById(stageId);
     if (!stage || !isStageUnlocked(stage)) { toast("此关尚未解锁"); return; }
-    B.stage = stage; B.isNormalStage = stage.type === "normal"; B.running = false; B.paused = false; B.last = performance.now(); B.fire = 0.6; B.spawn = 0; B.wave = 0; B.queue = []; B.enemies = []; B.swords = []; B.drops = [];
-    B.maxHp = effectiveWallMaxHp(); B.hp = B.maxHp; B.gold = 0; B.damage = 0; B.boss = null; B.bossCreated = false; B.catchShown = false; B.catchDone = false; B.finished = false; B.pendingFinish = false; B.outcome = ""; B.petSkillCooldown = 0; B.eliteSummon = 0;
+    B.stage = stage; B.isNormalStage = stage.type === "normal"; B.running = false; B.paused = false; B.last = performance.now(); B.fire = 0.6; B.spawn = 0; B.wave = 0; B.queue = []; B.enemies = []; B.swords = []; B.drops = []; B.hostileShots = [];
+    B.maxHp = effectiveWallMaxHp(); B.hp = B.maxHp; B.wallBroken = false; B.wallQuietFor = 0; B.wallUnderAttack = false; B.gold = 0; B.damage = 0; B.boss = null; B.bossCreated = false; B.catchShown = false; B.catchDone = false; B.finished = false; B.pendingFinish = false; B.outcome = ""; B.petSkillCooldown = 0; B.eliteSummon = 0;
     const chapter = chapterConfig(stage);
     if (stage.type === "story") { B.outcome = `${chapter.name}结算`; finish(true); return; }
     B.running = true; $("battleTitle").textContent = `${chapter.eyebrow} · ${stage.title}`; $("bossHud").classList.remove("show"); $("catchPanel").classList.remove("show"); $("runGold").textContent = 0;
@@ -442,7 +506,7 @@ P1_DEFAULT = {
     const isForest = stageChapter(stage) === 2; const labels = isForest ? ["妖藤初醒", "腐根蔓延", "灵木震颤", "林心妖潮", "妖核翻涌"] : ["妖气初现", "残阵震荡", "剑痕守望", "妖潮压境", "阵眼震颤"], names = isForest ? ["妖藤小灵", "腐木妖鼠", "藤甲妖猿", "裂隙木魅"] : ["污化狼妖", "裂隙妖灵", "荒原妖兵", "噬魂妖灵"];
     $("waveText").textContent = `第 ${n} / ${stage.waves || 3} 波 · ${labels[Math.min(n - 1, labels.length - 1)]}`;
     const count = 5 + n + Math.floor(tier / 2);
-    B.queue = Array.from({ length: count }, (_, i) => { const hp = 28 + tier * 7 + n * 7 + (i % 3) * 4; return { name: names[(i + n + tier) % names.length], hp, maxHp: hp, speed: 10 + tier * 0.9 + n * 0.65, r: 30 + (i % 2) * 3 + Math.min(7, Math.floor(tier / 2)), value: 5 + tier + n, boss: false, kind: isForest ? "forestNormal" : "normal" }; });
+    B.queue = Array.from({ length: count }, (_, i) => { const hp = 28 + tier * 7 + n * 7 + (i % 3) * 4; return { name: names[(i + n + tier) % names.length], hp, maxHp: hp, speed: 10 + tier * 0.9 + n * 0.65, r: 30 + (i % 2) * 3 + Math.min(7, Math.floor(tier / 2)), value: 5 + tier + n, meleeDamage: 12 + n + Math.floor(tier / 3), wallDamage: 26 + n * 2 + Math.floor(tier / 2), meleeInterval: 1.22, wallInterval: 1.55, boss: false, kind: isForest ? "forestNormal" : "normal" }; });
     B.spawn = 0.42;
   }
   function makeEnemy(x) {
@@ -453,16 +517,20 @@ P1_DEFAULT = {
       y: -45,
       hit: 0,
       slow: 0,
+      attackCooldown: 0.45 + Math.random() * 0.35,
+      wallAttackCooldown: 0.55 + Math.random() * 0.3,
+      mode: "advance",
     });
   }
 
   function spawnBoss() {
     const c = cs(), config = B.stage?.boss || { name: "寻木青雀", hp: 320, speed: 13, r: 44, value: 28, kind: "chapter" };
-    B.boss = { name: config.name, hp: config.hp, maxHp: config.hp, speed: config.speed, r: config.r, x: c.w / 2, y: -68, hit: 0, slow: 0, boss: true, enraged: false, value: config.value, kind: config.kind };
+    B.boss = { name: config.name, hp: config.hp, maxHp: config.hp, speed: config.speed, r: config.r, x: c.w / 2, y: -68, anchorY: Math.min(265, c.h * 0.42), hit: 0, slow: 0, boss: true, enraged: false, value: config.value, kind: config.kind, meleeCooldown: 0.9, rangedCooldown: 1.65, mode: "guard" };
     B.enemies.push(B.boss); B.bossCreated = true; B.eliteSummon = (config.kind === "elite" || config.kind === "forestElite") ? 1.6 : 0; $("bossHud").classList.add("show"); bossHud(); $("waveText").textContent = `首领来袭 · ${config.name}`;
     const isForestBoss = stageChapter(B.stage) === 2; msg("守关首领现身", B.stage?.capture ? `血量低于 ${Math.round(B.stage.capture.threshold * 100)}% 可结契` : isForestBoss ? "击破妖核，夺回封印碎片" : "击破首领，稳住荒原阵路");
   }
   function shoot() {
+    if (B.player.dead) return;
     let a = B.enemies.filter((e) => e.hp > 0);
     if (!a.length) return;
     let t = a.sort((a, b) => b.y - a.y)[0],
@@ -556,18 +624,18 @@ P1_DEFAULT = {
     if (B.finished) return; B.finished = true; B.running = false; $("catchPanel").classList.remove("show");
     const stageRewards = B.stage ? applyStageRewards(win) : null; const baseEarned = B.gold + (stageRewards ? stageRewards.gold : win ? 80 : 20) + (win && B.outcome === "狂暴后斩杀" ? 40 : 0); const earned = applyGoldBonus(baseEarned); P.gold += earned; P.cleared = win || P.cleared; save();
     const stageChapterName = chapterConfig(B.stage).name; const successTitle = B.outcome === "收服寻木青雀" ? "结契功成" : B.stage?.type === "story" ? `${stageChapterName}告一段落` : B.stage?.type === "elite" ? "精英试炼告捷" : "守阵告捷";
-    $("resultTitle").textContent = win ? successTitle : "护阵受损"; const resultChapter = $("resultChapter"); if (resultChapter) resultChapter.textContent = chapterConfig(B.stage).eyebrow;
+    $("resultTitle").textContent = win ? successTitle : B.outcome === "阵毁身陨" ? "阵毁身陨" : "守阵失守"; const resultChapter = $("resultChapter"); if (resultChapter) resultChapter.textContent = chapterConfig(B.stage).eyebrow;
     $("resultSub").textContent = win ? (stageRewards?.showEquipmentGuide ? "「叶轻舟」荒原残器尚有灵性。去法宝页穿戴它，让剑意真正归于你手。" : B.stage?.outro ? `「${B.stage.outro.speaker}」${B.stage.outro.text}` : "万剑归鞘，荒原妖气暂息。") : "本次已自动拾取的基础战利品将带回洞府。";
     $("resultWall").textContent = Math.max(0, Math.ceil((B.hp / B.maxHp) * 100)) + "%"; $("resultDamage").textContent = fmt(B.damage); $("resultBoss").textContent = win ? B.outcome || (B.stage?.type === "story" ? "章节结算完成" : "妖潮已退") : "妖潮突破";
     const rewards = [["🪙", `仙石 +${earned}`], ...(stageRewards?.items?.length ? stageRewards.items : win ? [["📜", "试炼完成"]] : [["📜", "基础战利品"]]), ...(stageRewards ? [["✦", stageRewards.firstClear ? "首通记录已写入" : "重复试炼记录"]] : [])];
     $("rewards").innerHTML = rewards.map((item) => `<div class="reward"><i>${item[0]}</i>${item[1]}</div>`).join(""); open("result");
   }
   function updatePetSkillButton() {
-    const button = $("petSkill"), pet = activePetConfig(); if (!button) return; const visible = Boolean(pet && B.running); button.hidden = !visible; if (!visible) return;
+    const button = $("petSkill"), pet = activePetConfig(); if (!button) return; const visible = Boolean(pet && B.running && !B.player.dead); button.hidden = !visible; if (!visible) return;
     button.disabled = B.paused || B.petSkillCooldown > 0; button.textContent = B.petSkillCooldown > 0 ? `${pet.activeSkill.name} ${B.petSkillCooldown.toFixed(1)}s` : `✦ ${pet.activeSkill.name}`;
   }
   function usePetSkill() {
-    const pet = activePetConfig(); if (!B.running || B.paused || !pet || B.petSkillCooldown > 0) return;
+    const pet = activePetConfig(); if (!B.running || B.paused || B.player.dead || !pet || B.petSkillCooldown > 0) return;
     const target = B.enemies.filter((e) => e.hp > 0).sort((a, b) => b.y - a.y)[0]; if (!target) { toast("暂无可协战的妖物"); return; }
     const damage = activePetSkillDamage(); B.enemies.slice().forEach((enemy) => { if (Math.hypot(enemy.x - target.x, enemy.y - target.y) <= 105) { enemy.slow = Math.max(enemy.slow || 0, pet.activeSkill.slow); hit(enemy, damage); } });
     B.petSkillCooldown = activePetSkillCooldown(); msg("青翎回风", `${pet.name} 掠阵，周遭妖物已被迟缓`); updatePetSkillButton();
@@ -578,37 +646,140 @@ P1_DEFAULT = {
     if (P.gold < pet.upgrade.gold || P.materials.qingqueFeather < pet.upgrade.feather) { toast("仙石或青雀灵羽不足"); return false; }
     P.gold -= pet.upgrade.gold; P.materials.qingqueFeather -= pet.upgrade.feather; P.petProgress[pet.id].level = level + 1; save(); profile(); toast(`${pet.name} 升至 Lv.${level + 1}，协战更强`); return true;
   }
+  function distanceBetween(a, b) {
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+  function updateNormalEnemy(e, dt, c) {
+    const playerNear = !B.player.dead && distanceBetween(e, B.player) <= e.r + 34;
+    e.attackCooldown = Math.max(0, (e.attackCooldown || 0) - dt);
+    e.wallAttackCooldown = Math.max(0, (e.wallAttackCooldown || 0) - dt);
+    if (playerNear) {
+      e.mode = "melee";
+      if (e.attackCooldown <= 0) {
+        damagePlayer(e.meleeDamage || 14, e.name + "近身扑击");
+        e.attackCooldown = e.meleeInterval || 1.22;
+      }
+      return;
+    }
+    const wallLine = c.h - 145;
+    if (e.y < wallLine) {
+      e.mode = "advance";
+      e.y = Math.min(wallLine, e.y + e.speed * dt * (e.slow > 0 ? 0.7 : 1));
+      return;
+    }
+    e.y = wallLine;
+    e.mode = B.wallBroken ? "breach" : "siege";
+    if (!B.wallBroken && e.wallAttackCooldown <= 0) {
+      damageWall(e.wallDamage || 28, e.name + "冲击护阵");
+      e.wallAttackCooldown = e.wallInterval || 1.55;
+    }
+  }
+  function fireBossProjectile(e, target, c) {
+    B.hostileShots.push({
+      x: e.x,
+      y: e.y + e.r * 0.45,
+      targetX: target === "player" ? B.player.x : c.w * 0.5,
+      targetY: target === "player" ? B.player.y : c.h - 140,
+      target,
+      speed: e.enraged ? 255 : 220,
+      damage: target === "player" ? (e.enraged ? 34 : 26) : (e.enraged ? 62 : 46),
+      life: 3.2,
+      r: target === "player" ? 7 : 8,
+    });
+  }
+  function updateBoss(e, dt, c) {
+    e.meleeCooldown = Math.max(0, (e.meleeCooldown || 0) - dt);
+    e.rangedCooldown = Math.max(0, (e.rangedCooldown || 0) - dt);
+    if (!B.wallBroken) {
+      e.mode = "guard";
+      const anchorX = c.w * 0.5;
+      e.x += Math.sign(anchorX - e.x) * Math.min(Math.abs(anchorX - e.x), e.speed * dt);
+      e.y += Math.sign(e.anchorY - e.y) * Math.min(Math.abs(e.anchorY - e.y), e.speed * dt);
+    } else {
+      e.mode = "breachAdvance";
+      const targetX = B.player.dead ? c.w * 0.5 : B.player.x;
+      e.x += Math.sign(targetX - e.x) * Math.min(Math.abs(targetX - e.x), e.speed * 0.48 * dt);
+      e.y = Math.min(c.h - 118, e.y + e.speed * 0.48 * dt);
+    }
+    if (!B.player.dead && distanceBetween(e, B.player) <= e.r + 86 && e.meleeCooldown <= 0) {
+      damagePlayer(e.enraged ? 34 : 25, e.name + "近战重击");
+      e.meleeCooldown = e.enraged ? 0.95 : 1.25;
+    }
+    if (e.rangedCooldown <= 0) {
+      if (!B.player.dead) fireBossProjectile(e, "player", c);
+      if (!B.wallBroken) fireBossProjectile(e, "wall", c);
+      e.rangedCooldown = e.enraged ? 1.55 : 2.25;
+      msg(e.name + "施展妖术", B.wallBroken ? "首领已越过破阵缺口" : "远程妖术同时锁定真君与护阵");
+    }
+  }
+  function updateHostileShots(dt) {
+    B.hostileShots.slice().forEach((shot) => {
+      shot.life -= dt;
+      const dx = shot.targetX - shot.x, dy = shot.targetY - shot.y, distance = Math.hypot(dx, dy) || 1, step = shot.speed * dt;
+      if (shot.target === "player" && !B.player.dead && distanceBetween(shot, B.player) <= shot.r + 24) {
+        damagePlayer(shot.damage, "Boss 远程妖术");
+        B.hostileShots.splice(B.hostileShots.indexOf(shot), 1);
+        return;
+      }
+      if (distance <= step + 4) {
+        shot.x = shot.targetX;
+        shot.y = shot.targetY;
+        if (shot.target === "wall" && !B.wallBroken) damageWall(shot.damage, "Boss 远程轰阵");
+        B.hostileShots.splice(B.hostileShots.indexOf(shot), 1);
+      } else if (shot.life <= 0) {
+        B.hostileShots.splice(B.hostileShots.indexOf(shot), 1);
+      } else {
+        shot.x += dx / distance * step;
+        shot.y += dy / distance * step;
+      }
+    });
+  }
+  function repairWallIfQuiet(dt) {
+    if (B.wallBroken || B.wallUnderAttack) {
+      if (!B.wallBroken) B.wallQuietFor = 0;
+      return false;
+    }
+    B.wallQuietFor += dt;
+    if (B.hp >= B.maxHp || B.wallQuietFor < WALL_REPAIR_DELAY) return false;
+    B.hp = Math.min(B.maxHp, B.hp + WALL_REPAIR_PER_SECOND * dt);
+    wall();
+    return true;
+  }
   function update(dt) {
     if (!B.running || B.paused) return;
-    let c = cs(),
-      b = playerBounds(),
-      x =
-        (keys.has("arrowright") || keys.has("d") ? 1 : 0) -
-        (keys.has("arrowleft") || keys.has("a") ? 1 : 0),
-      y =
-        (keys.has("arrowdown") || keys.has("s") ? 1 : 0) -
-        (keys.has("arrowup") || keys.has("w") ? 1 : 0);
-    if (x || y) {
-      let l = Math.hypot(x, y);
-      B.player.x = clamp(B.player.x + (x / l) * 260 * dt, b.minX, b.maxX);
-      B.player.y = clamp(B.player.y + (y / l) * 260 * dt, b.minY, b.maxY);
-      B.player.targetX = B.player.x;
-      B.player.targetY = B.player.y;
-    } else {
-      let dx = B.player.targetX - B.player.x,
-        dy = B.player.targetY - B.player.y,
-        d = Math.hypot(dx, dy),
-        st = 360 * dt;
-      if (d > 1) {
-        B.player.x += (dx / d) * Math.min(st, d);
-        B.player.y += (dy / d) * Math.min(st, d);
+    const c = cs(), b = playerBounds();
+    if (!B.player.dead) {
+      const x = (keys.has("arrowright") || keys.has("d") ? 1 : 0) - (keys.has("arrowleft") || keys.has("a") ? 1 : 0);
+      const y = (keys.has("arrowdown") || keys.has("s") ? 1 : 0) - (keys.has("arrowup") || keys.has("w") ? 1 : 0);
+      if (x || y) {
+        const length = Math.hypot(x, y);
+        B.player.x = clamp(B.player.x + x / length * 260 * dt, b.minX, b.maxX);
+        B.player.y = clamp(B.player.y + y / length * 260 * dt, b.minY, b.maxY);
+        B.player.targetX = B.player.x;
+        B.player.targetY = B.player.y;
+      } else {
+        const dx = B.player.targetX - B.player.x, dy = B.player.targetY - B.player.y, distance = Math.hypot(dx, dy), step = 360 * dt;
+        if (distance > 1) {
+          B.player.x += dx / distance * Math.min(step, distance);
+          B.player.y += dy / distance * Math.min(step, distance);
+        }
       }
+    } else {
+      keys.clear();
     }
+    B.player.hit = Math.max(0, (B.player.hit || 0) - dt);
     B.petSkillCooldown = Math.max(0, (B.petSkillCooldown || 0) - dt);
     updatePetSkillButton();
-    if (B.eliteSummon > 0 && B.boss && B.enemies.includes(B.boss)) { B.eliteSummon -= dt; if (B.eliteSummon <= 0) { const count = B.stage?.boss?.summonCount || 3, forestElite = B.stage?.boss?.kind === "forestElite"; for (let i = 0; i < count; i++) makeEnemy({ name: forestElite ? "妖藤小灵" : "碎石妖鼠", hp: forestElite ? 64 : 54, maxHp: forestElite ? 64 : 54, speed: forestElite ? 10 : 12, r: 27, value: 7, boss: false, kind: forestElite ? "forestNormal" : "normal" }); msg(forestElite ? "玄藤唤灵" : "石甲震地", forestElite ? "玄藤鹿灵唤来妖藤小灵" : "荒原石甲兽唤来碎石妖鼠"); } }
+    if (B.eliteSummon > 0 && B.boss && B.enemies.includes(B.boss)) {
+      B.eliteSummon -= dt;
+      if (B.eliteSummon <= 0) {
+        const count = B.stage?.boss?.summonCount || 3, forestElite = B.stage?.boss?.kind === "forestElite";
+        for (let i = 0; i < count; i++) makeEnemy({ name: forestElite ? "妖藤小灵" : "碎石妖鼠", hp: forestElite ? 64 : 54, maxHp: forestElite ? 64 : 54, speed: forestElite ? 10 : 12, r: 27, value: 7, meleeDamage: 14, wallDamage: 28, meleeInterval: 1.2, wallInterval: 1.5, boss: false, kind: forestElite ? "forestNormal" : "normal" });
+        msg(forestElite ? "玄藤唤灵" : "石甲震地", forestElite ? "玄藤鹿灵唤来妖藤小灵" : "荒原石甲兽唤来碎石妖鼠");
+      }
+    }
     B.fire -= dt;
-    if (B.fire <= 0) {
+    if (!B.player.dead && B.fire <= 0) {
       shoot();
       B.fire = ATTACK_INTERVAL;
     }
@@ -618,64 +789,59 @@ P1_DEFAULT = {
         makeEnemy(B.queue.shift());
         B.spawn = 0.82;
       }
-
     } else if (!B.enemies.length && !B.bossCreated) {
       const type = B.stage?.type || (B.isNormalStage ? "normal" : "boss"), waves = B.stage?.waves || 3;
-      if (B.wave < waves) { B.bossCreated = true; setTimeout(() => { B.bossCreated = false; wave(B.wave + 1); }, 280); }
-      else if (type === "normal") { if (!B.pendingFinish) { B.pendingFinish = true; B.outcome = "妖潮已退"; setTimeout(() => finish(true), 620); } }
-      else spawnBoss();
+      if (B.wave < waves) {
+        B.bossCreated = true;
+        setTimeout(() => { B.bossCreated = false; wave(B.wave + 1); }, 280);
+      } else if (type === "normal") {
+        if (!B.pendingFinish) {
+          B.pendingFinish = true;
+          B.outcome = "妖潮已退";
+          setTimeout(() => finish(true), 620);
+        }
+      } else {
+        spawnBoss();
+      }
     }
+    B.wallUnderAttack = false;
     B.enemies.slice().forEach((e) => {
       e.hit = Math.max(0, e.hit - dt);
-      e.y += e.speed * dt * (e.slow > 0 ? 0.7 : 1);
       e.slow = Math.max(0, e.slow - dt);
-      if (e.y > c.h - 145) {
-        let k = B.enemies.indexOf(e);
-        if (k >= 0) B.enemies.splice(k, 1);
-        B.hp -= e.boss ? 220 : 75;
-        wall();
-        msg("妖物冲阵！", `护阵 -${e.boss ? 220 : 75}`);
-
-        if (e.boss) { B.boss = null; $("bossHud").classList.remove("show"); finish(false); return; }
-        if (B.hp <= 0) finish(false);
-      }
+      if (e.boss) updateBoss(e, dt, c);
+      else updateNormalEnemy(e, dt, c);
     });
-    B.swords.slice().forEach((s) => {
-      s.life -= dt;
-      if (!s.target || !B.enemies.includes(s.target)) {
-        B.swords.splice(B.swords.indexOf(s), 1);
+    updateHostileShots(dt);
+    repairWallIfQuiet(dt);
+    if (!B.wallBroken && B.wallUnderAttack) wall();
+    B.swords.slice().forEach((sword) => {
+      sword.life -= dt;
+      if (!sword.target || !B.enemies.includes(sword.target)) {
+        B.swords.splice(B.swords.indexOf(sword), 1);
         return;
       }
-      let dx = s.target.x - s.x,
-        dy = s.target.y - s.y,
-        d = Math.hypot(dx, dy) || 1,
-        st = s.speed * dt;
-      if (d < st + 10) {
-        hit(s.target, s.damage);
-        B.swords.splice(B.swords.indexOf(s), 1);
+      const dx = sword.target.x - sword.x, dy = sword.target.y - sword.y, distance = Math.hypot(dx, dy) || 1, step = sword.speed * dt;
+      if (distance < step + 10) {
+        hit(sword.target, sword.damage);
+        B.swords.splice(B.swords.indexOf(sword), 1);
       } else {
-        s.x += (dx / d) * st;
-        s.y += (dy / d) * st;
+        sword.x += dx / distance * step;
+        sword.y += dy / distance * step;
       }
     });
-    B.drops.slice().forEach((d) => {
-      let hx = B.player.x,
-        hy = B.player.y - 8,
-        dx = hx - d.x,
-        dy = hy - d.y,
-        dis = Math.hypot(dx, dy);
-      if (dis < MAGNET_RANGE) {
-        d.x += dx * Math.min(1, dt * MAGNET_SPEED);
-        d.y += dy * Math.min(1, dt * MAGNET_SPEED);
-        if (dis < MAGNET_COLLECT_DISTANCE) {
-          if (d.type === "gold") B.gold += d.val;
-          else if (!P.equipment.includes("🛡️ 幽冥战甲"))
-            P.equipment.push("🛡️ 幽冥战甲");
-          B.drops.splice(B.drops.indexOf(d), 1);
+    B.drops.slice().forEach((dropItem) => {
+      const hx = B.player.x, hy = B.player.y - 8, dx = hx - dropItem.x, dy = hy - dropItem.y, distance = Math.hypot(dx, dy);
+      if (!B.player.dead && distance < MAGNET_RANGE) {
+        dropItem.x += dx * Math.min(1, dt * MAGNET_SPEED);
+        dropItem.y += dy * Math.min(1, dt * MAGNET_SPEED);
+        if (distance < MAGNET_COLLECT_DISTANCE) {
+          if (dropItem.type === "gold") B.gold += dropItem.val;
+          else if (!P.equipment.includes("🛡️ 幽冥战甲")) P.equipment.push("🛡️ 幽冥战甲");
+          B.drops.splice(B.drops.indexOf(dropItem), 1);
           $("runGold").textContent = fmt(B.gold);
         }
       }
-      d.spin += dt * 4;
+      dropItem.spin += dt * 4;
     });
   }
   function drawForestBattleScene(w, h) {
@@ -730,20 +896,36 @@ P1_DEFAULT = {
     ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(9, 0); ctx.lineTo(0, 10); ctx.lineTo(-9, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
     ctx.fillStyle = "#fff8c9"; ctx.fillRect(-1.5, -5, 3, 10); ctx.restore();
   }
+  function drawHostileShot(shot) {
+    ctx.save();
+    ctx.translate(shot.x, shot.y);
+    ctx.shadowColor = shot.target === "wall" ? "#f4b66b" : "#df786a";
+    ctx.shadowBlur = 14;
+    ctx.fillStyle = shot.target === "wall" ? "#f0cb6f" : "#df786a";
+    ctx.beginPath(); ctx.arc(0, 0, shot.r, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = "#fff5bf"; ctx.beginPath(); ctx.arc(-shot.r * 0.22, -shot.r * 0.24, shot.r * 0.36, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+  }
   function drawPlayerSprite(x, y) {
-    ctx.save(); ctx.fillStyle = "#1a2630aa"; ctx.beginPath(); ctx.ellipse(x, y + 24, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
-    const aura = ctx.createRadialGradient(x, y + 2, 4, x, y + 2, 44); aura.addColorStop(0, "#dfffd788"); aura.addColorStop(1, "#8be6c000"); ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(x, y + 2, 44, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#f3d47d"; ctx.shadowColor = "#fff1a3"; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 19, y + 16); ctx.lineTo(x + 36, y - 19); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.save();
+    if (B.player.dead) ctx.globalAlpha = 0.38;
+    ctx.fillStyle = "#1a2630aa"; ctx.beginPath(); ctx.ellipse(x, y + 24, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
+    if (!B.player.dead) {
+      const aura = ctx.createRadialGradient(x, y + 2, 4, x, y + 2, 44); aura.addColorStop(0, "#dfffd788"); aura.addColorStop(1, "#8be6c000"); ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(x, y + 2, 44, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.strokeStyle = B.player.hit > 0 ? "#ff6d61" : "#f3d47d"; ctx.shadowColor = B.player.hit > 0 ? "#ff7967" : "#fff1a3"; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 19, y + 16); ctx.lineTo(x + 36, y - 19); ctx.stroke(); ctx.shadowBlur = 0;
     ctx.fillStyle = "#1f3248"; ctx.beginPath(); ctx.moveTo(x - 26, y + 27); ctx.lineTo(x + 26, y + 27); ctx.lineTo(x + 16, y - 6); ctx.lineTo(x - 16, y - 6); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#49649a"; ctx.beginPath(); ctx.moveTo(x - 15, y - 4); ctx.lineTo(x + 15, y - 4); ctx.lineTo(x + 10, y + 24); ctx.lineTo(x - 10, y + 24); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#d8b76d"; ctx.fillRect(x - 14, y + 5, 28, 4);
     ctx.fillStyle = "#f4d7ae"; ctx.beginPath(); ctx.arc(x, y - 19, 15, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#23304b"; ctx.beginPath(); ctx.arc(x, y - 25, 16, Math.PI, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 16, y - 26, 32, 6);
-    ctx.fillStyle = "#fff0be"; ctx.fillRect(x - 9, y - 24, 18, 3); ctx.fillStyle = "#25314a"; ctx.fillRect(x - 8, y - 18, 4, 2); ctx.fillRect(x + 4, y - 18, 4, 2); ctx.restore();
+    ctx.fillStyle = "#fff0be"; ctx.fillRect(x - 9, y - 24, 18, 3); ctx.fillStyle = "#25314a"; ctx.fillRect(x - 8, y - 18, 4, 2); ctx.fillRect(x + 4, y - 18, 4, 2);
+    if (B.player.dead) { ctx.globalAlpha = 1; ctx.fillStyle = "#f17a6b"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; ctx.fillText("重伤观战", x, y - 48); }
+    ctx.restore();
   }
   function drawPetSprite() {
     const pet = activePetConfig();
-    if (!pet) return;
+    if (!pet || B.player.dead) return;
     const c = cs();
     const bob = Math.sin(performance.now() / 180) * 3;
     const x = clamp(B.player.x + 43, 28, c.w - 28);
@@ -808,7 +990,7 @@ P1_DEFAULT = {
   function draw() {
     if (!ctx) return;
     const { w, h } = cs(); ctx.clearRect(0, 0, w, h); drawBattleScene(w, h);
-    B.drops.forEach(drawDrop); drawPetSprite(); drawPlayerSprite(B.player.x, B.player.y); B.enemies.forEach(drawEnemySprite); B.swords.forEach(drawSwordSprite);
+    B.drops.forEach(drawDrop); B.hostileShots.forEach(drawHostileShot); drawPetSprite(); drawPlayerSprite(B.player.x, B.player.y); B.enemies.forEach(drawEnemySprite); B.swords.forEach(drawSwordSprite);
   }
   function loop(t) {
     if (!B.running) return;

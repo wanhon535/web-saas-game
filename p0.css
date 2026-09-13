@@ -1834,3 +1834,32 @@ button:active {
   .stage-chapter-group > header { align-items: flex-start; flex-direction: column; gap: 2px; }
   .stage-chapter-group > header small { text-align: left; }
 }
+
+
+/* P1+｜战斗生存规则：主角生命、护阵状态与双目标压力。 */
+.battle-bottom { min-height: 158px; }
+.battle-vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.combat-vital { min-width: 0; display: flex; align-items: center; gap: 6px; padding: 5px 6px; border: 1px solid #b8c5b777; border-radius: 10px; background: #153143a8; }
+.combat-vital > span { flex: 0 0 auto; font-size: 20px; }
+.combat-vital > div { min-width: 0; flex: 1; }
+.combat-vital b { display: block; font-size: 10px; color: #fff7d4; }
+.combat-vital i { float: right; font-style: normal; font-size: 9px; color: #ffefb4; }
+.combat-vital small { display: block; margin-top: 3px; overflow: hidden; color: #b9d8d5; font-size: 8px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.combat-vital .bar { height: 8px; margin-top: 3px; border-color: #d5ddc9a8; }
+.player-bar { background: #452f3e; }
+.player-bar i { background: linear-gradient(90deg, #e86c6a, #f4b064); }
+.player-health.is-dead { border-color: #b65c60; background: #4a2b36d9; }
+.player-health.is-dead small { color: #ffb5a7; }
+.wall.is-broken { border-color: #dd695c; background: #4e2c33d9; }
+.wall.is-broken .green i { background: #7c4343; }
+.wall.is-broken small { color: #ffc0a4; }
+@media (max-width: 430px) {
+  .battle-bottom { min-height: 164px; }
+  .battle-vitals { gap: 5px; }
+  .combat-vital { padding: 4px 5px; gap: 5px; }
+  .combat-vital > span { font-size: 18px; }
+  .combat-vital b { font-size: 9px; }
+  .combat-vital small { font-size: 7px; }
+  .battle-actions { margin-top: 6px; }
+  .catch-panel { bottom: 167px; }
+}
