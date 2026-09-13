@@ -68,7 +68,7 @@ http://127.0.0.1:3000/
 ├─ AGENTS.md                          # AI 开发确认、测试与 Git 守则
 ├─ server/
 │  └─ start_server.js                 # 本地静态试玩服务
-├─ tests/                             # 六项独立自动化检查
+├─ tests/                             # 统一测试入口与六项独立自动化检查
 └─ docs/
    ├─ README.md                       # 文档索引与查阅顺序
    ├─ 07_开发进度与交接日志.md         # 连续开发记录与回档入口
@@ -93,13 +93,10 @@ http://127.0.0.1:3000/
 ```powershell
 node --check .\p0.js
 node --check .\p1-data.js
-node .\tests\p0-regression-check.js
-node .\tests\p1-chapter-progression-check.js
-node .\tests\p1-equipment-check.js
-node .\tests\p1-full-chapter-check.js
-node .\tests\p1-chapter2-check.js
-node .\tests\p1-combat-survival-check.js
+node .\tests\test.js
 ```
+
+`tests/test.js` 会按固定顺序执行六项独立检查，并在全部成功后汇总结果。若需定位某一类问题，可直接单独运行对应检查文件。
 
 当前共覆盖 **158 项关键断言**：P0 回归 19 项、章节推进 16 项、装备/迁移 33 项、第一章完整版 30 项、第二章专项 27 项、护阵重构与复生规则 33 项。
 
