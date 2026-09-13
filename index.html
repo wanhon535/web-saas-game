@@ -31,14 +31,7 @@
         </nav>
         <main class="home-scroll">
           <section class="home-dashboard">
-            <aside class="home-utility-rail home-utility-left" aria-label="活动入口">
-              <button id="homePromoToggle" class="home-rail-toggle" data-action="toggle-home-promos" aria-expanded="false"><i>礼</i><small>活动</small><b>⌄</b></button>
-              <div id="homePromoPanel" class="home-promo-panel" hidden>
-                <button data-placeholder-title="仙玉" data-placeholder-icon="◇"><i>◇</i><small>仙玉</small></button>
-                <button data-placeholder-title="特惠" data-placeholder-icon="惠"><i>惠</i><small>特惠</small><span class="notice-dot" aria-hidden="true"></span></button>
-                <button data-placeholder-title="活动" data-placeholder-icon="礼"><i>礼</i><small>活动</small></button>
-              </div>
-            </aside>
+
             <aside class="home-utility-rail home-utility-right" aria-label="社交入口">
               <button data-placeholder-title="任务" data-placeholder-icon="卷"><i>卷</i><small>任务</small><span class="notice-dot" aria-hidden="true"></span></button>
               <button data-placeholder-title="好友" data-placeholder-icon="友"><i>友</i><small>好友</small></button>
@@ -67,7 +60,14 @@
           <button class="drawer-scrim" data-action="close-home-placeholder" aria-label="关闭功能提示"></button>
           <section class="home-placeholder-sheet" role="dialog" aria-modal="true" aria-labelledby="homePlaceholderTitle"><i id="homePlaceholderIcon">✦</i><h2 id="homePlaceholderTitle">功能筹备中</h2><p id="homePlaceholderText">该功能将在后续版本开放。</p><button class="gold-btn" data-action="close-home-placeholder">知道了</button></section>
         </aside>
-        <nav class="tabbar"><button class="tab active" data-nav="home">⛩️<small>洞府</small></button><button class="tab" data-nav="equip">⚔️<small>法宝</small></button><button class="tab" data-nav="pet">🦊<small>灵宠</small></button></nav>
+        <aside class="home-bottom-promo" aria-label="活动与福利入口">
+          <button id="homePromoToggle" class="home-rail-toggle" data-action="toggle-home-promos" aria-expanded="false"><i>礼</i><span><b>活动与福利</b><small>点击展开仙玉、特惠与限时活动</small></span><em>⌃</em></button>
+          <div id="homePromoPanel" class="home-promo-panel" hidden>
+            <button data-placeholder-title="仙玉" data-placeholder-icon="◇"><i>◇</i><small>仙玉</small></button>
+            <button data-placeholder-title="特惠" data-placeholder-icon="惠"><i>惠</i><small>特惠</small><span class="notice-dot" aria-hidden="true"></span></button>
+            <button data-placeholder-title="活动" data-placeholder-icon="礼"><i>礼</i><small>活动</small></button>
+          </div>
+        </aside>
       </section>
       <section id="equip" class="screen sub-screen">
         <header class="topbar">

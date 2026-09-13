@@ -25,9 +25,10 @@ assert(html.includes('id="homePromoToggle"') && html.includes('id="homePromoPane
 assert(html.includes('data-placeholder-title="仙玉"') && html.includes('data-placeholder-title="特惠"') && html.includes('data-placeholder-title="活动"'), '活动收纳栏保留仙玉、特惠与活动入口');
 for (const label of ['任务', '好友', '邮件']) assert(html.includes(`data-placeholder-title="${label}"`), `首页显示「${label}」快捷图标`);
 assert(html.includes('id="homePlaceholderPanel"') && html.includes('data-action="close-home-placeholder"'), '暂未开发的入口使用可关闭占位窗口');
-assert(html.includes('<small>洞府</small>'), '底部首页入口使用洞府主题名称');
-assert(html.includes('data-action="toggle-home-promos"'), '活动入口使用独立展开与收起交互');
-assert(css.includes('.home-quick-nav') && css.includes('.home-utility-rail') && css.includes('.home-placeholder-panel'), '首页新增布局和收纳样式存在');
+const homeMarkup = html.match(/<section id="home"[\s\S]*?<section id="equip"/)?.[0] || '';
+assert(!homeMarkup.includes('class="tabbar"'), '首页不再保留重复的底部页面导航');
+assert(homeMarkup.includes('class="home-bottom-promo"') && homeMarkup.includes('data-action="toggle-home-promos"'), '首页底部使用活动与福利收纳入口');
+assert(css.includes('.home-quick-nav') && css.includes('.home-bottom-promo') && css.includes('.home-placeholder-panel'), '首页新增布局和底部收纳样式存在');
 assert(game.includes('function toggleHomePromos(show)') && game.includes('function openHomePlaceholder(title, icon ='), '首页收纳与占位窗口交互已接入');
 assert(game.includes('setText("jadeTop", "0")') && game.includes('setText("homePowerValue", currentPower())'), '首页资产与修为展示由现有数据刷新');
 assert(!game.includes('仙石'), '玩家可见的游戏文本已统一使用灵石');
