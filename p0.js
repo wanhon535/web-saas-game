@@ -203,7 +203,13 @@ P1_DEFAULT = {
     if (!panel) return;
     const shouldOpen = typeof show === "boolean" ? show : panel.hidden;
     panel.hidden = !shouldOpen;
-    if (toggle) { toggle.setAttribute("aria-expanded", String(shouldOpen)); toggle.classList.toggle("is-open", shouldOpen); }
+    if (toggle) {
+      toggle.setAttribute("aria-expanded", String(shouldOpen));
+      toggle.setAttribute("aria-label", shouldOpen ? "收起活动入口" : "展开活动入口");
+      toggle.classList.toggle("is-open", shouldOpen);
+      const label = $("homePromoToggleLabel");
+      if (label) label.textContent = shouldOpen ? "收起" : "活动";
+    }
   }
   function openHomePlaceholder(title, icon = "✦") {
     const panel = $("homePlaceholderPanel");

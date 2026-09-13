@@ -2023,3 +2023,8 @@ button:active {
 .home-quick-nav button { min-height: 72px; gap: 4px; padding: 6px 2px 5px; font-size: 13px; line-height: 1.1; }
 .home-quick-nav button i { width: 35px; height: 35px; border-radius: 10px; font-size: 17px; box-shadow: 0 2px 0 #65442d; }
 #home .home-scroll { padding-bottom: 88px; }
+
+/* UI｜活动展开后提供明确、可见的收起入口。 */
+.home-rail-toggle.is-open { width: 56px; grid-template-columns: 16px minmax(0, 1fr) 12px; justify-items: center; gap: 2px; padding: 3px 4px; background: linear-gradient(#c47a42, #81432d); }
+.home-rail-toggle.is-open small { color: #fff7d2; font-size: 10px; font-weight: 1000; letter-spacing: 1px; }
+.home-rail-toggle.is-open b { color: #ffe19a; font-size: 13px; }

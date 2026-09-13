@@ -22,6 +22,7 @@ for (const label of ['仙坊', '灵宠', '妖隙', '剑域', '宗门']) assert(h
 assert(html.includes('id="chapterDrawerToggle"') && html.includes('选择副本 ›'), '首页保留副本选择入口');
 assert(html.includes('class="home-character-entry"') && html.includes('点击配置法宝'), '首页显示万剑真君角色形象入口');
 assert(html.includes('id="homePromoToggle"') && html.includes('id="homePromoPanel"'), '首页活动入口可收纳');
+assert(html.includes('id="homePromoToggleLabel"') && game.includes('shouldOpen ? "收起" : "活动"') && game.includes('shouldOpen ? "收起活动入口" : "展开活动入口"') && css.includes('.home-rail-toggle.is-open { width: 56px;'), '活动展开后提供明确的收起文案、无障碍提示和可见收起入口样式');
 assert(html.includes('data-placeholder-title="仙玉"') && html.includes('data-placeholder-title="特惠"') && html.includes('data-placeholder-title="活动"'), '活动收纳栏保留仙玉、特惠与活动入口');
 for (const label of ['任务', '好友', '邮件']) assert(html.includes(`data-placeholder-title="${label}"`), `首页显示「${label}」快捷图标`);
 assert(html.includes('id="homePlaceholderPanel"') && html.includes('data-action="close-home-placeholder"'), '暂未开发的入口使用可关闭占位窗口');
