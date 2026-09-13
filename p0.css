@@ -1978,14 +1978,12 @@ button:active {
 .home-utility-rail button, .home-promo-panel button { width: 28px; min-height: 38px; padding: 2px; display: grid; place-items: center; align-content: center; gap: 1px; position: relative; border: 1.5px solid #765139; border-radius: 8px; color: #fff3c4; background: linear-gradient(#486c75, #294856); box-shadow: 0 2px 0 #6d4934; }
 .home-utility-rail button i, .home-promo-panel button i { font-size: 13px; font-style: normal; font-weight: 1000; }
 .home-utility-rail button small, .home-promo-panel button small { font-size: 7px; white-space: nowrap; }
-.home-bottom-promo { position: absolute; z-index: 10; right: 7px; bottom: 52px; display: flex; justify-content: flex-end; }
-.home-bottom-promo > .home-rail-toggle { width: 42px; min-height: 42px; display: grid; place-items: center; padding: 3px; border: 1.5px solid #c69555; border-radius: 11px; color: #fff3c4; background: linear-gradient(#a75e36, #713928); box-shadow: 0 2px 0 #3d2730; }
-.home-bottom-promo > .home-rail-toggle > i { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #ffe0a0; border-radius: 8px; color: #ffe5a0; font-size: 14px; font-style: normal; background: #6b3541; }
-.home-bottom-promo > .home-rail-toggle span, .home-bottom-promo > .home-rail-toggle em { display: none; }
-.home-bottom-promo .home-promo-panel { position: absolute; right: 0; bottom: 48px; width: min(240px, calc(100vw - 22px)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 7px; border: 1.5px solid #89603d; border-radius: 12px; background: linear-gradient(#f7e5bb, #d9b778); box-shadow: 0 5px 0 #71482f, 0 12px 25px #0005; }
-.home-bottom-promo .home-promo-panel[hidden] { display: none; }
-.home-bottom-promo .home-promo-panel button { width: auto; min-height: 42px; border-radius: 9px; }
-.home-bottom-promo .home-promo-panel button small { color: #fff3c4; font-size: 8px; white-space: nowrap; }
+.home-utility-left { left: 0; align-items: flex-start; }
+.home-utility-left .home-rail-toggle { background: linear-gradient(#b96e3b, #7a422d); }
+.home-rail-toggle b { font-size: 10px; line-height: 8px; }
+.home-rail-toggle.is-open b { transform: rotate(180deg); }
+.home-promo-panel { display: grid; gap: 5px; }
+.home-promo-panel[hidden] { display: none; }
 .home-promo-panel button:nth-child(2) { background: linear-gradient(#a35353, #6b3541); }
 .home-promo-panel button:nth-child(3) { background: linear-gradient(#8a6d35, #5b4827); }
 .notice-dot { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border: 1px solid #fff2c0; border-radius: 50%; background: #e95e52; }

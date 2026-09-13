@@ -28,12 +28,11 @@ assert(html.includes('id="homePlaceholderPanel"') && html.includes('data-action=
 const homeMarkup = html.match(/<section id="home"[\s\S]*?<section id="equip"/)?.[0] || '';
 const quickNavIndex = homeMarkup.indexOf('id="homeQuickNav"');
 const scrollIndex = homeMarkup.indexOf('<main class="home-scroll">');
-const promoIndex = homeMarkup.indexOf('class="home-bottom-promo"');
 assert(!homeMarkup.includes('class="tabbar"'), '首页不再保留旧的重复页面导航');
-assert(quickNavIndex > promoIndex && quickNavIndex > scrollIndex, '首页主导航位于底部活动入口之后');
-assert(homeMarkup.includes('class="home-bottom-promo"') && homeMarkup.includes('data-action="toggle-home-promos"'), '活动与福利保留为底部导航上方的独立收纳入口');
-assert(css.includes('.home-quick-nav { position: absolute;') && css.includes('bottom: 0;') && css.includes('.home-bottom-promo { position: absolute;'), '首页主导航与活动入口的底部布局样式存在');
-assert(css.includes('.home-bottom-promo .home-promo-panel[hidden] { display: none; }'), '活动收纳面板在未展开时保持隐藏');
+assert(quickNavIndex > scrollIndex, '首页主导航位于页面内容之后的底部区域');
+assert(homeMarkup.includes('class="home-utility-rail home-utility-left"') && homeMarkup.includes('data-action="toggle-home-promos"'), '活动与福利恢复为首页左侧收纳入口');
+assert(!homeMarkup.includes('class="home-bottom-promo"'), '首页底部只保留主导航，不再放置活动栏');
+assert(css.includes('.home-quick-nav { position: absolute;') && css.includes('bottom: 0;') && css.includes('.home-utility-left { left: 0;') && css.includes('.home-promo-panel[hidden] { display: none; }'), '首页底部主导航与左侧活动收纳样式存在');
 assert(game.includes('function toggleHomePromos(show)') && game.includes('function openHomePlaceholder(title, icon ='), '首页收纳与占位窗口交互已接入');
 assert(game.includes('setText("jadeTop", "0")') && game.includes('setText("homePowerValue", currentPower())'), '首页资产与修为展示由现有数据刷新');
 assert(!game.includes('仙石'), '玩家可见的游戏文本已统一使用灵石');
