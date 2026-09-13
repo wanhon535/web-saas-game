@@ -2017,3 +2017,9 @@ button:active {
   #home .boss-label { top: 156px; }
   #home .stage-brief { min-height: 52px; }
 }
+
+/* UI｜底部主导航可读性优化：保持五项入口与功能不变，仅扩大视觉与触控区域。 */
+.home-quick-nav { height: 64px; min-height: 64px; }
+.home-quick-nav button { min-height: 62px; gap: 3px; padding: 5px 2px 4px; font-size: 12px; line-height: 1.1; }
+.home-quick-nav button i { width: 29px; height: 29px; border-radius: 9px; font-size: 15px; box-shadow: 0 2px 0 #65442d; }
+#home .home-scroll { padding-bottom: 76px; }
