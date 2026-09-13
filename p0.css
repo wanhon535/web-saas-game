@@ -1800,3 +1800,37 @@ button:active {
   .stage-reward { margin-top: 4px; padding-top: 4px; }
   .start-btn { min-height: 57px; }
 }
+
+/* P1+｜第二章灵木妖林：章节主视觉、多章节抽屉与妖林配色。 */
+.stage-chapter-group {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.stage-chapter-group > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 3px 4px 1px;
+  color: #e8c982;
+}
+.stage-chapter-group > header b { font-size: 14px; }
+.stage-chapter-group > header small { color: #c9b889; font-size: 11px; text-align: right; }
+.stage-chapter-group.chapter-locked { opacity: .68; }
+.chapter-progress-toggle i { font-style: normal; }
+.chapter-two-theme .chapter-map-card {
+  background: linear-gradient(132deg, #123b36 0%, #27644b 50%, #a18d58 100%);
+}
+.chapter-two-theme .chapter-map-card::after {
+  background: radial-gradient(circle at 75% 26%, #bff79b7a 0 5%, transparent 27%), linear-gradient(110deg, transparent 0 45%, #143a3373 45% 49%, transparent 49% 100%);
+}
+.chapter-two-theme .chapter-heading small { color: #c7f2ad; }
+.chapter-two-theme .chapter-heading h1 { text-shadow: 0 3px 16px #102a22; }
+.chapter-two-theme .boss-sigil { filter: drop-shadow(0 0 14px #a7f38e); }
+.chapter-two-theme .boss-label { border-color: #a6d87f8c; background: #143d36d9; }
+.chapter-two-theme .home-command-deck { border-color: #527d58; }
+@media (max-width: 390px) {
+  .stage-chapter-group > header { align-items: flex-start; flex-direction: column; gap: 2px; }
+  .stage-chapter-group > header small { text-align: left; }
+}

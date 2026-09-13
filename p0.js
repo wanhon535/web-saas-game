@@ -2,9 +2,9 @@
   const KEY = "wanjian_fengyao_p0_v3",
 
 P1_DEFAULT = {
-      schemaVersion: 5,
-      chapterProgress: { currentStage: "1-01", cleared: {}, firstRewards: {}, chapterCompleted: false },
-      materials: { swordIron: 0, spiritSand: 0, pactCharm: 0, qingqueFeather: 0 },
+      schemaVersion: 6,
+      chapterProgress: { currentStage: "1-01", cleared: {}, firstRewards: {}, chapterCompleted: false, chapterCompletion: { "1": false, "2": false } },
+      materials: { swordIron: 0, spiritSand: 0, pactCharm: 0, qingqueFeather: 0, woodEssence: 0, vineCore: 0 },
       ownedGear: [],
       equippedGear: { bracer: null, robe: null, jade: null, talisman: null },
       equipmentTutorial: { firstGearReceived: false, firstGearEquipped: false },
@@ -27,9 +27,10 @@ P1_DEFAULT = {
     if (oldPet && !roster.includes("xunmuQingque")) roster.push("xunmuQingque");
     const progress = { ...(P.petProgress || {}) };
     if (roster.includes("xunmuQingque")) progress.xunmuQingque = { level: Math.max(1, number(progress.xunmuQingque?.level) || 1) };
-    P.schemaVersion = 5;
-    P.chapterProgress = { currentStage: typeof c.currentStage === "string" ? c.currentStage : "1-01", cleared: { ...(c.cleared || {}) }, firstRewards: { ...(c.firstRewards || {}) }, chapterCompleted: Boolean(c.chapterCompleted) };
-    P.materials = { swordIron: number(m.swordIron), spiritSand: number(m.spiritSand), pactCharm: number(m.pactCharm), qingqueFeather: number(m.qingqueFeather) };
+    const chapterCompletion = { "1": Boolean(c.chapterCompletion?.["1"] || c.chapterCompleted), "2": Boolean(c.chapterCompletion?.["2"]) };
+    P.schemaVersion = 6;
+    P.chapterProgress = { currentStage: typeof c.currentStage === "string" ? c.currentStage : "1-01", cleared: { ...(c.cleared || {}) }, firstRewards: { ...(c.firstRewards || {}) }, chapterCompleted: chapterCompletion["1"], chapterCompletion };
+    P.materials = { swordIron: number(m.swordIron), spiritSand: number(m.spiritSand), pactCharm: number(m.pactCharm), qingqueFeather: number(m.qingqueFeather), woodEssence: number(m.woodEssence), vineCore: number(m.vineCore) };
     P.ownedGear = Array.isArray(P.ownedGear) ? [...new Set(P.ownedGear)] : [];
     P.equippedGear = { bracer: typeof e.bracer === "string" ? e.bracer : null, robe: typeof e.robe === "string" ? e.robe : null, jade: typeof e.jade === "string" ? e.jade : null, talisman: typeof e.talisman === "string" ? e.talisman : null };
     P.equipmentTutorial = { firstGearReceived: hasTutorialField("firstGearReceived") ? Boolean(t.firstGearReceived) : P.ownedGear.length > 0, firstGearEquipped: hasTutorialField("firstGearEquipped") ? Boolean(t.firstGearEquipped) : false };
@@ -134,6 +135,16 @@ P1_DEFAULT = {
   function stageById(id) {
     return chapterStages().find((stage) => stage.id === id) || null;
   }
+  function stageChapter(stage) {
+    return Number(stage?.chapter || String(stage?.id || "1-01").split("-")[0]) || 1;
+  }
+  function chapterConfig(stage) {
+    const chapter = stageChapter(stage);
+    return globalThis.P1_CONFIG?.chapters?.[chapter] || { id: chapter, name: `第${chapter}章`, eyebrow: `第${chapter}章`, tagline: "天衍剑宗，万剑封妖", bossName: "守关大妖", bossIcon: "☯", drawerNote: "选择已解锁关卡后进入试炼。" };
+  }
+  function stagesForChapter(chapter) {
+    return chapterStages().filter((stage) => stageChapter(stage) === Number(chapter));
+  }
 
   function isStageUnlocked(stage) {
     if (!stage) return false;
@@ -176,26 +187,49 @@ P1_DEFAULT = {
     if (toggle) toggle.setAttribute("aria-expanded", String(shouldOpen));
   }
 
+  function renderChapterPresentation(stage) {
+    const chapter = chapterConfig(stage), chapterNumber = stageChapter(stage);
+    const set = (id, value) => { const node = $(id); if (node) node.textContent = value; };
+    set("chapterEyebrow", chapter.eyebrow);
+    set("chapterTitle", chapter.name.split("").join(" "));
+    set("chapterTagline", chapter.tagline);
+    set("chapterBossIcon", chapter.bossIcon);
+    set("chapterBossLabel", `章节 Boss · ${chapter.bossName}`);
+    set("chapterBossHint", chapterNumber === 1 ? "完成 1-08 后开放首次结契" : "斩灭妖核，夺回封印碎片");
+    set("chapterProgressLabel", `第${chapterNumber}章进度`);
+    set("chapterDrawerEyebrow", `天衍剑宗 · ${chapter.name}`);
+    set("chapterDrawerNote", chapter.drawerNote);
+    const map = $("stageMap"); if (map) map.setAttribute("aria-label", `第${chapterNumber}章关卡地图`);
+    if (document.body?.classList) document.body.classList.toggle("chapter-two-theme", chapterNumber === 2);
+  }
   function renderChapterMap() {
     const map = $("stageMap"), brief = $("stageBrief"), startButton = $("stageStart"); if (!map || !brief || !startButton) return;
     const stages = chapterStages(), active = selectedStage();
-    map.innerHTML = stages.map((stage, index) => {
-      const cleared = Boolean(P.chapterProgress.cleared[stage.id]), unlocked = isStageUnlocked(stage), selected = active?.id === stage.id, state = cleared ? "cleared" : unlocked ? "open" : "locked";
-      const status = cleared ? "已完成" : unlocked ? (stage.type === "story" ? "可结算" : "可挑战") : "尚未解锁";
-      const badge = stage.type === "boss" ? "🦅" : stage.type === "elite" ? "◆" : stage.type === "story" ? "☯" : index + 1;
-      return `<button class="stage-card ${state} ${selected ? "selected" : ""}" data-action="select-stage" data-stage-id="${stage.id}" ${unlocked ? "" : 'aria-disabled="true"'}><span class="stage-number">${badge}</span><span class="stage-card-copy"><b>${stage.id} · ${stage.title}</b><small>${stageTypeLabel(stage)} · ${status}</small></span><span class="stage-state">${cleared ? "✓" : unlocked ? "✦" : "🔒"}</span></button>`;
+    renderChapterPresentation(active);
+    const chapterIds = [...new Set(stages.map(stageChapter))];
+    map.innerHTML = chapterIds.map((chapter) => {
+      const chapterStagesList = stagesForChapter(chapter), config = chapterConfig(chapterStagesList[0]);
+      const cards = chapterStagesList.map((stage, index) => {
+        const cleared = Boolean(P.chapterProgress.cleared[stage.id]), unlocked = isStageUnlocked(stage), selected = active?.id === stage.id, state = cleared ? "cleared" : unlocked ? "open" : "locked";
+        const status = cleared ? "已完成" : unlocked ? (stage.type === "story" ? "可结算" : "可挑战") : "尚未解锁";
+        const badge = stage.type === "boss" ? config.bossIcon : stage.type === "elite" ? "◆" : stage.type === "story" ? "☯" : index + 1;
+        return `<button class="stage-card ${state} ${selected ? "selected" : ""}" data-action="select-stage" data-stage-id="${stage.id}" ${unlocked ? "" : 'aria-disabled="true"'}><span class="stage-number">${badge}</span><span class="stage-card-copy"><b>${stage.id} · ${stage.title}</b><small>${stageTypeLabel(stage)} · ${status}</small></span><span class="stage-state">${cleared ? "✓" : unlocked ? "✦" : "🔒"}</span></button>`;
+      }).join("");
+      const locked = !chapterStagesList.some(isStageUnlocked);
+      return `<section class="stage-chapter-group ${locked ? "chapter-locked" : ""}"><header><b>第${chapter}章 · ${config.name}</b><small>${locked ? "完成前章后开启" : config.tagline}</small></header>${cards}</section>`;
     }).join("");
     const progressText = $("chapterProgressText");
-    if (progressText) {
-      const finished = stages.filter((stage) => P.chapterProgress.cleared[stage.id]).length;
-      progressText.textContent = finished + " / " + stages.length;
+    if (progressText && active) {
+      const currentStages = stagesForChapter(stageChapter(active));
+      progressText.textContent = `${currentStages.filter((stage) => P.chapterProgress.cleared[stage.id]).length} / ${currentStages.length}`;
     }
-    if (!active) { brief.innerHTML = "<b>第一章试炼尚未配置</b>"; startButton.disabled = true; return; }
-    const cleared = Boolean(P.chapterProgress.cleared[active.id]), reward = cleared ? active.repeat : active.firstClear;
-    const objective = active.type === "story" ? "完成第一章结算，整理荒原战果" : active.type === "boss" ? `击退 ${active.boss?.name || "守关首领"}，完成结契试炼` : active.type === "elite" ? `清剿妖潮后，击败 ${active.boss?.name || "精英首领"}` : `守住护宗大阵，清剿 ${active.waves} 波妖潮`;
+    if (!active) { brief.innerHTML = "<b>章节试炼尚未配置</b>"; startButton.disabled = true; return; }
+    const cleared = Boolean(P.chapterProgress.cleared[active.id]), reward = cleared ? active.repeat : active.firstClear, chapter = chapterConfig(active);
+    const objective = active.type === "story" ? `完成${chapter.name}结算，整理本章战果` : active.type === "boss" ? `击败 ${active.boss?.name || "守关首领"}，夺回封印碎片` : active.type === "elite" ? `清剿妖潮后，击败 ${active.boss?.name || "精英首领"}` : `守住护宗大阵，清剿 ${active.waves} 波妖潮`;
     brief.innerHTML = `<div class="stage-brief-top"><span>${active.id}</span><b>${active.title}</b><em>${cleared ? "已完成" : "当前目标"}</em></div><p class="stage-objective">${objective}</p><small>${stageTypeLabel(active)} · 推荐剑意 ${active.recommendedPower}</small><div class="stage-reward"><b>${cleared ? "重复所得" : "首通所得"}</b><span>${rewardSummary(reward)}</span></div>`;
     startButton.disabled = false; startButton.innerHTML = `✦ ${active.type === "story" ? "完成" : "进入"} ${active.id} · ${active.title}<small>${cleared ? "重复奖励：" : "首通奖励："}${rewardSummary(reward)}</small>`;
-  }  function selectStage(id) {
+  }
+  function selectStage(id) {
     const stage = stageById(id);
     if (!stage || !isStageUnlocked(stage)) {
       toast(stage?.lockedReason || "此关尚未解锁");
@@ -397,17 +431,18 @@ P1_DEFAULT = {
     if (!stage || !isStageUnlocked(stage)) { toast("此关尚未解锁"); return; }
     B.stage = stage; B.isNormalStage = stage.type === "normal"; B.running = false; B.paused = false; B.last = performance.now(); B.fire = 0.6; B.spawn = 0; B.wave = 0; B.queue = []; B.enemies = []; B.swords = []; B.drops = [];
     B.maxHp = effectiveWallMaxHp(); B.hp = B.maxHp; B.gold = 0; B.damage = 0; B.boss = null; B.bossCreated = false; B.catchShown = false; B.catchDone = false; B.finished = false; B.pendingFinish = false; B.outcome = ""; B.petSkillCooldown = 0; B.eliteSummon = 0;
-    if (stage.type === "story") { B.outcome = "第一章结算"; finish(true); return; }
-    B.running = true; $("battleTitle").textContent = `第一章 · ${stage.title}`; $("bossHud").classList.remove("show"); $("catchPanel").classList.remove("show"); $("runGold").textContent = 0;
+    const chapter = chapterConfig(stage);
+    if (stage.type === "story") { B.outcome = `${chapter.name}结算`; finish(true); return; }
+    B.running = true; $("battleTitle").textContent = `${chapter.eyebrow} · ${stage.title}`; $("bossHud").classList.remove("show"); $("catchPanel").classList.remove("show"); $("runGold").textContent = 0;
     wall(); open("battle"); size(); resetPlayer(); wave(1); msg(`踏入 ${stage.title}`, `「${stage.intro.speaker}」${stage.intro.text}`); requestAnimationFrame(loop);
   }
   function wave(n) {
     B.wave = n;
     const stage = B.stage || { waves: 3, enemyTier: 0, type: "normal" }; const index = Math.max(0, chapterStages().findIndex((item) => item.id === stage.id)); const tier = Number(stage.enemyTier) || Math.max(0, index);
-    const labels = ["妖气初现", "残阵震荡", "剑痕守望", "妖潮压境", "阵眼震颤"], names = ["污化狼妖", "裂隙妖灵", "荒原妖兵", "噬魂妖灵"];
+    const isForest = stageChapter(stage) === 2; const labels = isForest ? ["妖藤初醒", "腐根蔓延", "灵木震颤", "林心妖潮", "妖核翻涌"] : ["妖气初现", "残阵震荡", "剑痕守望", "妖潮压境", "阵眼震颤"], names = isForest ? ["妖藤小灵", "腐木妖鼠", "藤甲妖猿", "裂隙木魅"] : ["污化狼妖", "裂隙妖灵", "荒原妖兵", "噬魂妖灵"];
     $("waveText").textContent = `第 ${n} / ${stage.waves || 3} 波 · ${labels[Math.min(n - 1, labels.length - 1)]}`;
     const count = 5 + n + Math.floor(tier / 2);
-    B.queue = Array.from({ length: count }, (_, i) => { const hp = 28 + tier * 7 + n * 7 + (i % 3) * 4; return { name: names[(i + n + tier) % names.length], hp, maxHp: hp, speed: 10 + tier * 0.9 + n * 0.65, r: 30 + (i % 2) * 3 + Math.min(7, Math.floor(tier / 2)), value: 5 + tier + n, boss: false }; });
+    B.queue = Array.from({ length: count }, (_, i) => { const hp = 28 + tier * 7 + n * 7 + (i % 3) * 4; return { name: names[(i + n + tier) % names.length], hp, maxHp: hp, speed: 10 + tier * 0.9 + n * 0.65, r: 30 + (i % 2) * 3 + Math.min(7, Math.floor(tier / 2)), value: 5 + tier + n, boss: false, kind: isForest ? "forestNormal" : "normal" }; });
     B.spawn = 0.42;
   }
   function makeEnemy(x) {
@@ -424,8 +459,8 @@ P1_DEFAULT = {
   function spawnBoss() {
     const c = cs(), config = B.stage?.boss || { name: "寻木青雀", hp: 320, speed: 13, r: 44, value: 28, kind: "chapter" };
     B.boss = { name: config.name, hp: config.hp, maxHp: config.hp, speed: config.speed, r: config.r, x: c.w / 2, y: -68, hit: 0, slow: 0, boss: true, enraged: false, value: config.value, kind: config.kind };
-    B.enemies.push(B.boss); B.bossCreated = true; B.eliteSummon = config.kind === "elite" ? 1.6 : 0; $("bossHud").classList.add("show"); bossHud(); $("waveText").textContent = `首领来袭 · ${config.name}`;
-    msg("守关首领现身", B.stage?.capture ? `血量低于 ${Math.round(B.stage.capture.threshold * 100)}% 可结契` : "击破首领，稳住荒原阵路");
+    B.enemies.push(B.boss); B.bossCreated = true; B.eliteSummon = (config.kind === "elite" || config.kind === "forestElite") ? 1.6 : 0; $("bossHud").classList.add("show"); bossHud(); $("waveText").textContent = `首领来袭 · ${config.name}`;
+    const isForestBoss = stageChapter(B.stage) === 2; msg("守关首领现身", B.stage?.capture ? `血量低于 ${Math.round(B.stage.capture.threshold * 100)}% 可结契` : isForestBoss ? "击破妖核，夺回封印碎片" : "击破首领，稳住荒原阵路");
   }
   function shoot() {
     let a = B.enemies.filter((e) => e.hp > 0);
@@ -512,7 +547,7 @@ P1_DEFAULT = {
     let showEquipmentGuide = false;
     if (reward.gear) { const gear = gearById(reward.gear); if (gear && !P.ownedGear.includes(gear.id)) { P.ownedGear.push(gear.id); P.equipment.push(`${gear.icon} ${gear.name}`); if (!P.equipmentTutorial.firstGearReceived) { P.equipmentTutorial.firstGearReceived = true; showEquipmentGuide = true; } } if (gear) items.push([gear.icon, gear.name]); }
     if (reward.pet) { const pet = petById(reward.pet); if (pet) { grantPet(pet.id); items.push([pet.icon, `结契 ${pet.name}`]); } }
-    if (B.stage.type === "story") P.chapterProgress.chapterCompleted = true;
+    if (B.stage.type === "story") { const chapter = String(stageChapter(B.stage)); P.chapterProgress.chapterCompletion[chapter] = true; if (chapter === "1") P.chapterProgress.chapterCompleted = true; }
     const stages = chapterStages(), next = stages[stages.findIndex((stage) => stage.id === B.stage.id) + 1]; P.chapterProgress.currentStage = next?.id || B.stage.id; selectedStageId = P.chapterProgress.currentStage;
     return { gold: reward.gold || 0, items, firstClear, showEquipmentGuide };
   }
@@ -520,8 +555,8 @@ P1_DEFAULT = {
   function finish(win) {
     if (B.finished) return; B.finished = true; B.running = false; $("catchPanel").classList.remove("show");
     const stageRewards = B.stage ? applyStageRewards(win) : null; const baseEarned = B.gold + (stageRewards ? stageRewards.gold : win ? 80 : 20) + (win && B.outcome === "狂暴后斩杀" ? 40 : 0); const earned = applyGoldBonus(baseEarned); P.gold += earned; P.cleared = win || P.cleared; save();
-    const successTitle = B.outcome === "收服寻木青雀" ? "结契功成" : B.stage?.type === "story" ? "第一章告一段落" : B.stage?.type === "elite" ? "精英试炼告捷" : "守阵告捷";
-    $("resultTitle").textContent = win ? successTitle : "护阵受损";
+    const stageChapterName = chapterConfig(B.stage).name; const successTitle = B.outcome === "收服寻木青雀" ? "结契功成" : B.stage?.type === "story" ? `${stageChapterName}告一段落` : B.stage?.type === "elite" ? "精英试炼告捷" : "守阵告捷";
+    $("resultTitle").textContent = win ? successTitle : "护阵受损"; const resultChapter = $("resultChapter"); if (resultChapter) resultChapter.textContent = chapterConfig(B.stage).eyebrow;
     $("resultSub").textContent = win ? (stageRewards?.showEquipmentGuide ? "「叶轻舟」荒原残器尚有灵性。去法宝页穿戴它，让剑意真正归于你手。" : B.stage?.outro ? `「${B.stage.outro.speaker}」${B.stage.outro.text}` : "万剑归鞘，荒原妖气暂息。") : "本次已自动拾取的基础战利品将带回洞府。";
     $("resultWall").textContent = Math.max(0, Math.ceil((B.hp / B.maxHp) * 100)) + "%"; $("resultDamage").textContent = fmt(B.damage); $("resultBoss").textContent = win ? B.outcome || (B.stage?.type === "story" ? "章节结算完成" : "妖潮已退") : "妖潮突破";
     const rewards = [["🪙", `仙石 +${earned}`], ...(stageRewards?.items?.length ? stageRewards.items : win ? [["📜", "试炼完成"]] : [["📜", "基础战利品"]]), ...(stageRewards ? [["✦", stageRewards.firstClear ? "首通记录已写入" : "重复试炼记录"]] : [])];
@@ -571,7 +606,7 @@ P1_DEFAULT = {
     }
     B.petSkillCooldown = Math.max(0, (B.petSkillCooldown || 0) - dt);
     updatePetSkillButton();
-    if (B.eliteSummon > 0 && B.boss && B.enemies.includes(B.boss)) { B.eliteSummon -= dt; if (B.eliteSummon <= 0) { const count = B.stage?.boss?.summonCount || 3; for (let i = 0; i < count; i++) makeEnemy({ name: "碎石妖鼠", hp: 54, maxHp: 54, speed: 12, r: 27, value: 7, boss: false }); msg("石甲震地", "荒原石甲兽唤来碎石妖鼠"); } }
+    if (B.eliteSummon > 0 && B.boss && B.enemies.includes(B.boss)) { B.eliteSummon -= dt; if (B.eliteSummon <= 0) { const count = B.stage?.boss?.summonCount || 3, forestElite = B.stage?.boss?.kind === "forestElite"; for (let i = 0; i < count; i++) makeEnemy({ name: forestElite ? "妖藤小灵" : "碎石妖鼠", hp: forestElite ? 64 : 54, maxHp: forestElite ? 64 : 54, speed: forestElite ? 10 : 12, r: 27, value: 7, boss: false, kind: forestElite ? "forestNormal" : "normal" }); msg(forestElite ? "玄藤唤灵" : "石甲震地", forestElite ? "玄藤鹿灵唤来妖藤小灵" : "荒原石甲兽唤来碎石妖鼠"); } }
     B.fire -= dt;
     if (B.fire <= 0) {
       shoot();
@@ -643,7 +678,22 @@ P1_DEFAULT = {
       d.spin += dt * 4;
     });
   }
+  function drawForestBattleScene(w, h) {
+    const stageType = B.stage?.type || "normal", sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, stageType === "boss" ? "#102b2c" : "#143a37"); sky.addColorStop(0.43, "#275d4c"); sky.addColorStop(1, "#5f7050"); ctx.fillStyle = sky; ctx.fillRect(0, 0, w, h);
+    ctx.save(); ctx.globalAlpha = stageType === "boss" ? 0.42 : 0.25; ctx.fillStyle = "#a8ef8d";
+    for (let i = 0; i < 17; i++) { const x = (i * 71 + 29) % w, y = 28 + (i % 5) * 39; ctx.beginPath(); ctx.arc(x, y, 2 + (i % 3), 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalAlpha = 0.22; ctx.fillStyle = "#d7ffe0"; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.ellipse(w * (0.16 + i * 0.27), h * (0.33 + (i % 2) * .055), w * .31, 17, -.12, 0, Math.PI * 2); ctx.fill(); } ctx.restore();
+    const trunks = [[w*.04, h*.06, 31], [w*.2, h*.18, 23], [w*.82, h*.04, 36], [w*.66, h*.2, 22], [w*.97, h*.2, 26]];
+    trunks.forEach(([x, y, r]) => { ctx.fillStyle = "#183f37"; ctx.fillRect(x - r*.24, y, r*.48, h*.51 - y); ctx.fillStyle = "#2b684d"; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.arc(x-r*.65, y+r*.22, r*.65, 0, Math.PI*2); ctx.arc(x+r*.67, y+r*.16, r*.7, 0, Math.PI*2); ctx.fill(); });
+    ctx.strokeStyle = "#67b576"; ctx.globalAlpha = .42; ctx.lineWidth = 3; for (let i = 0; i < 6; i++) { const x = w * (0.1 + i*.17); ctx.beginPath(); ctx.moveTo(x, h*.35); ctx.quadraticCurveTo(x + 25, h*.48, x - 12, h*.68); ctx.stroke(); } ctx.globalAlpha = 1;
+    const groundY = h*.43, ground = ctx.createLinearGradient(0, groundY, 0, h); ground.addColorStop(0, "#557154"); ground.addColorStop(1, "#29463a"); ctx.fillStyle = ground; ctx.fillRect(0, groundY, w, h-groundY);
+    ctx.fillStyle = "#769264"; ctx.beginPath(); ctx.moveTo(w*.43,groundY);ctx.lineTo(w*.59,groundY);ctx.lineTo(w*.87,h);ctx.lineTo(w*.08,h);ctx.closePath();ctx.fill();
+    ctx.strokeStyle = "#3f674e"; ctx.globalAlpha=.55; ctx.lineWidth=2; for(let y=groundY+26;y<h;y+=39){ctx.beginPath();ctx.moveTo(0,y);ctx.quadraticCurveTo(w*.5,y-12,w,y);ctx.stroke();} ctx.globalAlpha=1;
+    ctx.save(); ctx.strokeStyle="#92f0ae";ctx.shadowColor="#72e796";ctx.shadowBlur=12;ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(18,h-114);ctx.lineTo(w-18,h-114);ctx.stroke();ctx.globalAlpha=.4;ctx.lineWidth=1;for(let x=38;x<w-20;x+=54){ctx.beginPath();ctx.arc(x,h-114,10,0,Math.PI*2);ctx.stroke();}ctx.restore();
+  }
   function drawBattleScene(w, h) {
+    if (stageChapter(B.stage) === 2) { drawForestBattleScene(w, h); return; }
     const stageType = B.stage?.type || "normal";
     const palette = stageType === "boss" ? ["#152d43", "#355d67", "#9a8466"] : stageType === "elite" ? ["#233a4b", "#57736d", "#b59b75"] : ["#284b5b", "#74988d", "#d1ad79"];
     const sky = ctx.createLinearGradient(0, 0, 0, h);
@@ -726,23 +776,24 @@ P1_DEFAULT = {
     ctx.restore();
   }
   function drawEnemySprite(e) {
-    const r = e.r, isBird = e.boss && e.kind === "chapter", isElite = e.boss && e.kind === "elite";
+    const r = e.r, isBird = e.boss && e.kind === "chapter", isElite = e.boss && e.kind === "elite", isForestElite = e.boss && e.kind === "forestElite", isForestChapter = e.boss && e.kind === "forestChapter", isForestNormal = !e.boss && e.kind === "forestNormal";
     ctx.save(); ctx.translate(e.x, e.y); ctx.fillStyle = "#162f30aa"; ctx.beginPath(); ctx.ellipse(0, r * 0.72, r * 0.9, r * 0.28, 0, 0, Math.PI * 2); ctx.fill();
-    if (isBird) {
+    if (isForestChapter) {
+      ctx.strokeStyle = e.enraged ? "#d86d68" : "#1f5f57"; ctx.fillStyle = e.enraged ? "#b75350" : "#347b66"; ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.moveTo(-r*.92,r*.2); ctx.quadraticCurveTo(-r*.72,-r*.72,-r*.1,-r*.42); ctx.quadraticCurveTo(r*.58,-r*.68,r*.86,-r*.08); ctx.quadraticCurveTo(r*.45,r*.5,0,r*.36); ctx.quadraticCurveTo(-r*.48,r*.65,-r*.92,r*.2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle="#73c890";ctx.beginPath();ctx.arc(-r*.04,-r*.34,r*.35,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#97f6cf";ctx.beginPath();ctx.arc(-r*.16,-r*.38,r*.07,0,Math.PI*2);ctx.arc(r*.16,-r*.38,r*.07,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#d7f397";ctx.beginPath();ctx.moveTo(r*.58,r*.02);ctx.lineTo(r*1.1,-r*.35);ctx.stroke();
+    } else if (isForestElite) {
+      ctx.fillStyle = e.enraged ? "#b45450" : "#608a59"; ctx.strokeStyle = "#244a3c"; ctx.lineWidth=4; ctx.beginPath();ctx.ellipse(0,r*.05,r*.67,r*.78,0,0,Math.PI*2);ctx.fill();ctx.stroke();
+      ctx.strokeStyle="#b7d67e";ctx.lineWidth=3;[-1,1].forEach(side=>{ctx.beginPath();ctx.moveTo(side*r*.19,-r*.38);ctx.lineTo(side*r*.56,-r*.86);ctx.lineTo(side*r*.77,-r*.61);ctx.moveTo(side*r*.56,-r*.86);ctx.lineTo(side*r*.78,-r*1.03);ctx.stroke();});ctx.fillStyle="#dce9ad";ctx.beginPath();ctx.arc(0,-r*.23,r*.26,0,Math.PI*2);ctx.fill();ctx.stroke();
+    } else if (isForestNormal) {
+      ctx.fillStyle="#427a58";ctx.strokeStyle="#1f4b3c";ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,1,r*.7,r*.8,0,0,Math.PI*2);ctx.fill();ctx.stroke();ctx.fillStyle="#83be77";for(let i=0;i<3;i++){ctx.beginPath();ctx.ellipse((i-1)*r*.32,-r*.37,r*.17,r*.38,(i-1)*.45,0,Math.PI*2);ctx.fill();}ctx.fillStyle="#d8f3a9";
+    } else if (isBird) {
       const wingColor = e.enraged ? "#bd5959" : "#5c9b80"; ctx.fillStyle = wingColor; ctx.strokeStyle = "#274e4c"; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.moveTo(-r * 0.2, 0); ctx.lineTo(-r * 1.1, -r * 0.55); ctx.lineTo(-r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(r * 0.2, 0); ctx.lineTo(r * 1.1, -r * 0.55); ctx.lineTo(r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = e.enraged ? "#e16a5d" : "#78bea0"; ctx.beginPath(); ctx.ellipse(0, 0, r * 0.52, r * 0.72, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#f3d273"; ctx.beginPath(); ctx.moveTo(0, -r * 0.08); ctx.lineTo(r * 0.45, r * 0.08); ctx.lineTo(0, r * 0.18); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-r * 0.2, 0); ctx.lineTo(-r * 1.1, -r * 0.55); ctx.lineTo(-r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo(r * 0.2, 0); ctx.lineTo(r * 1.1, -r * 0.55); ctx.lineTo(r * 0.72, r * 0.5); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = e.enraged ? "#e16a5d" : "#78bea0"; ctx.beginPath(); ctx.ellipse(0, 0, r * 0.52, r * 0.72, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#f3d273"; ctx.beginPath(); ctx.moveTo(0, -r * 0.08); ctx.lineTo(r * 0.45, r * 0.08); ctx.lineTo(0, r * 0.18); ctx.closePath(); ctx.fill();
     } else if (isElite) {
-      ctx.fillStyle = e.enraged ? "#b8544e" : "#78816b"; ctx.strokeStyle = "#3e483b"; ctx.lineWidth = 4;
-      ctx.beginPath(); ctx.moveTo(-r * 0.85, r * 0.45); ctx.lineTo(-r * 0.72, -r * 0.4); ctx.lineTo(-r * 0.25, -r * 0.82); ctx.lineTo(r * 0.48, -r * 0.66); ctx.lineTo(r * 0.86, -r * 0.08); ctx.lineTo(r * 0.7, r * 0.56); ctx.closePath(); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = "#a9a58e"; [[-r * .35,-r*.3],[r*.3,-r*.22],[0,r*.25]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,r*.17,0,Math.PI*2);ctx.fill();});
+      ctx.fillStyle = e.enraged ? "#b8544e" : "#78816b"; ctx.strokeStyle = "#3e483b"; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(-r * 0.85, r * 0.45); ctx.lineTo(-r * 0.72, -r * 0.4); ctx.lineTo(-r * 0.25, -r * 0.82); ctx.lineTo(r * 0.48, -r * 0.66); ctx.lineTo(r * 0.86, -r * 0.08); ctx.lineTo(r * 0.7, r * 0.56); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#a9a58e"; [[-r * .35,-r*.3],[r*.3,-r*.22],[0,r*.25]].forEach(([x,y])=>{ctx.beginPath();ctx.arc(x,y,r*.17,0,Math.PI*2);ctx.fill();});
     } else {
-      const spirit = e.name.includes("灵"); ctx.fillStyle = spirit ? "#75649b" : "#58735d"; ctx.strokeStyle = "#263d3a"; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.ellipse(0, 1, r * 0.72, r * 0.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-      if (!spirit) { ctx.beginPath(); ctx.moveTo(-r*.48,-r*.48); ctx.lineTo(-r*.24,-r*.94); ctx.lineTo(0,-r*.5); ctx.lineTo(r*.28,-r*.94); ctx.lineTo(r*.48,-r*.42); ctx.closePath(); ctx.fill(); }
-      else { ctx.globalAlpha = .4; ctx.fillStyle = "#cdb9ed"; ctx.beginPath(); ctx.moveTo(-r*.7,r*.1);ctx.lineTo(-r*.95,r*.85);ctx.lineTo(0,r*.57);ctx.lineTo(r*.9,r*.88);ctx.lineTo(r*.64,r*.05);ctx.closePath();ctx.fill();ctx.globalAlpha=1; }
+      const spirit = e.name.includes("灵"); ctx.fillStyle = spirit ? "#75649b" : "#58735d"; ctx.strokeStyle = "#263d3a"; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(0, 1, r * 0.72, r * 0.8, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); if (!spirit) { ctx.beginPath(); ctx.moveTo(-r*.48,-r*.48); ctx.lineTo(-r*.24,-r*.94); ctx.lineTo(0,-r*.5); ctx.lineTo(r*.28,-r*.94); ctx.lineTo(r*.48,-r*.42); ctx.closePath(); ctx.fill(); } else { ctx.globalAlpha = .4; ctx.fillStyle = "#cdb9ed"; ctx.beginPath(); ctx.moveTo(-r*.7,r*.1);ctx.lineTo(-r*.95,r*.85);ctx.lineTo(0,r*.57);ctx.lineTo(r*.9,r*.88);ctx.lineTo(r*.64,r*.05);ctx.closePath();ctx.fill();ctx.globalAlpha=1; }
     }
     ctx.fillStyle = "#f8e9a7"; ctx.beginPath(); ctx.arc(-r * 0.23, -r * 0.1, 3.4, 0, Math.PI * 2); ctx.arc(r * 0.23, -r * 0.1, 3.4, 0, Math.PI * 2); ctx.fill();
     if (e.hit > 0) { ctx.globalAlpha = Math.min(0.9, e.hit * 5); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc(0, 0, r + 7, 0, Math.PI * 2); ctx.fill(); }

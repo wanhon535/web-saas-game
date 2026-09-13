@@ -73,7 +73,7 @@ rewardTest.applyStageRewards(true);
 assert(rewardTest.P.chapterProgress.chapterCompleted, '章节结算写入第一章完成记录');
 
 const migrated = boot({ pet: '寻木青雀', tutorialCaptureDone: false });
-assert(migrated.P.schemaVersion === 5, '旧档升级至 schema 5');
+assert(migrated.P.schemaVersion === 6, '旧档升级至 schema 6');
 assert(migrated.P.petRoster.includes('xunmuQingque') && migrated.P.activePet === 'xunmuQingque', '旧 P0 灵宠字段迁移为御兽列表和出战位');
 assert(migrated.P.petProgress.xunmuQingque.level === 1 && migrated.P.tutorialCaptureDone, '旧灵宠迁移为 Lv.1 且保留已完成引导');
 

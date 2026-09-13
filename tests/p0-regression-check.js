@@ -111,7 +111,7 @@ function showCapturePanel(instance) {
 
 // 1. 新手教学：显示、阻止诛灭、镇妖符必定成功。
 const firstSeal = boot();
-assert(firstSeal.test.P.schemaVersion === 5, '旧 P0 存档迁移至 P1 第一章完整版存档版本');
+assert(firstSeal.test.P.schemaVersion === 6, '旧 P0 存档迁移至 P1+ 多章节存档版本');
 assert(firstSeal.test.P.chapterProgress.currentStage === '1-01', '新存档默认从第一章第一关开始');
 assert(firstSeal.test.P.materials.swordIron === 0, '旧存档补齐剑胚残铁材料字段');
 assert(

@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
     />
-    <title>修仙御兽：万剑封妖｜P1 第一章完整版</title>
+    <title>修仙御兽：万剑封妖｜P1+ 灵木妖林</title>
     <link rel="stylesheet" href="p0.css" />
   </head>
   <body>
@@ -26,13 +26,13 @@
           <section class="chapter-card chapter-map-card">
             <div class="mist"></div>
             <div class="chapter-heading">
-              <small>第一章 · 幽冥荒原</small>
-              <h1>幽 冥 荒 原</h1>
-              <p>妖气冲霄，唯万剑可封</p>
+              <small id="chapterEyebrow">第一章 · 幽冥荒原</small>
+              <h1 id="chapterTitle">幽 冥 荒 原</h1>
+              <p id="chapterTagline">妖气冲霄，唯万剑可封</p>
             </div>
-            <div class="boss-sigil">🦅</div>
-            <div class="boss-label">
-              章节 Boss · 寻木青雀<small>完成 1-08 后开放首次结契</small>
+            <div id="chapterBossIcon" class="boss-sigil">🦅</div>
+            <div id="chapterBossLabel" class="boss-label">
+              章节 Boss · 寻木青雀<small id="chapterBossHint">完成 1-08 后开放首次结契</small>
             </div>          </section>
           <section class="home-command-deck" aria-label="当前试炼">
             <button
@@ -42,7 +42,7 @@
               aria-controls="chapterDrawer"
               aria-expanded="false"
             >
-              <span>第一章进度 <b id="chapterProgressText">0 / 10</b></span>
+              <span><i id="chapterProgressLabel">第一章进度</i> <b id="chapterProgressText">0 / 10</b></span>
               <small>关卡总览 ›</small>
             </button>
             <section
@@ -67,10 +67,10 @@
           <button class="drawer-scrim" data-action="close-chapter-drawer" aria-label="关闭章节列表"></button>
           <section class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="chapterDrawerTitle">
             <header class="drawer-head">
-              <div><small>天衍剑宗 · 幽冥荒原</small><h2 id="chapterDrawerTitle">章节试炼</h2></div>
+              <div><small id="chapterDrawerEyebrow">天衍剑宗 · 幽冥荒原</small><h2 id="chapterDrawerTitle">章节试炼</h2></div>
               <button class="drawer-close" data-action="close-chapter-drawer" aria-label="关闭">×</button>
             </header>
-            <p class="drawer-note">选择已解锁关卡后，将返回荒原首页。</p>
+            <p id="chapterDrawerNote" class="drawer-note">选择已解锁关卡后，将返回当前章节入口。</p>
             <div id="stageMap" class="stage-map" aria-label="第一章关卡地图"></div>
           </section>
         </aside>
@@ -256,7 +256,7 @@
           <div class="result-banner">
             <span>☯</span>
             <h1 id="resultTitle">斩妖大捷</h1>
-            <p>第一章 · 幽冥荒原</p>
+            <p id="resultChapter">第一章 · 幽冥荒原</p>
           </div>
           <p id="resultSub" class="result-sub">万剑归鞘，荒原妖气暂息。</p>
           <section class="result-card">
