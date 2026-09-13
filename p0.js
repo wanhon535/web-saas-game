@@ -399,15 +399,23 @@ P1_DEFAULT = {
     $("wallHpText").textContent = `${Math.ceil(B.hp)} / ${B.maxHp}`;
     $("wallHpBar").style.width = p + "%";
     const state = $("wallState"), hud = $("wallHud");
-    if (state) state.textContent = B.wallBroken ? "护阵已破 · 不可复原" : B.wallUnderAttack ? "护阵受袭" : B.hp < B.maxHp && B.wallQuietFor >= WALL_REPAIR_DELAY ? "阵纹自修复中" : "护阵运转正常";
-    hud?.classList?.toggle("is-broken", Boolean(B.wallBroken));
+    const repairing = !B.wallUnderAttack && B.hp < B.maxHp && B.wallQuietFor >= WALL_REPAIR_DELAY;
+    if (state) {
+      state.textContent = B.hp <= 0
+        ? (B.wallUnderAttack ? "护阵已破 · 正受攻击" : repairing ? "护阵已破 · 阵纹重构中" : "护阵已破 · 等待修复")
+        : B.wallBroken
+          ? (repairing ? "护阵重构中 · 复生资格失效" : "护阵曾破 · 不可复生")
+          : B.wallUnderAttack ? "护阵受袭" : repairing ? "阵纹自修复中" : "护阵运转正常";
+    }
+    hud?.classList?.toggle("is-broken", B.hp <= 0);
+    hud?.classList?.toggle("is-compromised", Boolean(B.wallBroken && B.hp > 0));
   }
   function playerHud() {
     const p = Math.max(0, (B.player.hp / B.player.maxHp) * 100);
     $("playerHpText").textContent = `${Math.ceil(B.player.hp)} / ${B.player.maxHp}`;
     $("playerHpBar").style.width = p + "%";
     const state = $("playerState"), hud = $("playerHud");
-    if (state) state.textContent = B.player.dead ? (B.wallBroken ? "真君陨落 · 阵破终局" : "真君重伤 · 观战护阵") : "御剑守阵";
+    if (state) state.textContent = B.player.dead ? (B.wallBroken ? "真君陨落 · 阵破终局" : "真君战败 · 保留复生机会") : "御剑守阵";
     hud?.classList?.toggle("is-dead", Boolean(B.player.dead));
   }
   function bothDefensesLost() {
@@ -432,23 +440,24 @@ P1_DEFAULT = {
     B.player.dragging = false;
     B.swords = [];
     playerHud();
-    msg("万剑真君重伤", B.wallBroken ? "护阵已破，试炼终止" : "护阵尚存，当前只能观战，待后续复活机制开放", true);
+    msg("万剑真君战败", B.wallBroken ? "护阵曾被击破，试炼终止" : "护阵尚存，保留复生机会；当前进入观战", true);
     resolveDefenseFailure();
     return true;
   }
   function damageWall(amount, source = "妖物攻阵") {
-    if (B.wallBroken || !B.running) return false;
+    if (!B.running) return false;
     B.wallUnderAttack = true;
     B.wallQuietFor = 0;
     B.hp = Math.max(0, B.hp - Math.max(0, amount));
+    const firstBreak = B.hp <= 0 && !B.wallBroken;
     if (B.hp <= 0) B.wallBroken = true;
     wall();
-    if (B.wallBroken) {
-      msg("护宗大阵已破", B.player.dead ? "真君已重伤，试炼终止" : "真君仍可继续斩妖，但已失去复活资格", true);
-      resolveDefenseFailure();
-    } else {
+    if (firstBreak) {
+      msg("护宗大阵已破", B.player.dead ? "真君已战败，试炼终止" : "真君仍可继续斩妖，但已失去复生资格", true);
+    } else if (B.hp > 0) {
       msg(source, `护阵 -${Math.ceil(amount)}`);
     }
+    resolveDefenseFailure();
     return true;
   }
 
@@ -668,8 +677,8 @@ P1_DEFAULT = {
       return;
     }
     e.y = wallLine;
-    e.mode = B.wallBroken ? "breach" : "siege";
-    if (!B.wallBroken && e.wallAttackCooldown <= 0) {
+    e.mode = B.hp <= 0 ? "breach" : "siege";
+    if (e.wallAttackCooldown <= 0) {
       damageWall(e.wallDamage || 28, e.name + "冲击护阵");
       e.wallAttackCooldown = e.wallInterval || 1.55;
     }
@@ -735,8 +744,8 @@ P1_DEFAULT = {
     });
   }
   function repairWallIfQuiet(dt) {
-    if (B.wallBroken || B.wallUnderAttack) {
-      if (!B.wallBroken) B.wallQuietFor = 0;
+    if (B.wallUnderAttack) {
+      B.wallQuietFor = 0;
       return false;
     }
     B.wallQuietFor += dt;
@@ -908,11 +917,13 @@ P1_DEFAULT = {
   }
   function drawPlayerSprite(x, y) {
     ctx.save();
-    if (B.player.dead) ctx.globalAlpha = 0.38;
-    ctx.fillStyle = "#1a2630aa"; ctx.beginPath(); ctx.ellipse(x, y + 24, 33, 10, 0, 0, Math.PI * 2); ctx.fill();
-    if (!B.player.dead) {
+    const downed = B.player.dead;
+    if (downed) ctx.globalAlpha = 0.72;
+    ctx.fillStyle = "#1a2630aa"; ctx.beginPath(); ctx.ellipse(x, y + 24, downed ? 43 : 33, 10, 0, 0, Math.PI * 2); ctx.fill();
+    if (!downed) {
       const aura = ctx.createRadialGradient(x, y + 2, 4, x, y + 2, 44); aura.addColorStop(0, "#dfffd788"); aura.addColorStop(1, "#8be6c000"); ctx.fillStyle = aura; ctx.beginPath(); ctx.arc(x, y + 2, 44, 0, Math.PI * 2); ctx.fill();
     }
+    if (downed) { ctx.save(); ctx.translate(x, y + 15); ctx.rotate(-Math.PI * 0.42); ctx.translate(-x, -(y + 15)); }
     ctx.strokeStyle = B.player.hit > 0 ? "#ff6d61" : "#f3d47d"; ctx.shadowColor = B.player.hit > 0 ? "#ff7967" : "#fff1a3"; ctx.shadowBlur = 8; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(x + 19, y + 16); ctx.lineTo(x + 36, y - 19); ctx.stroke(); ctx.shadowBlur = 0;
     ctx.fillStyle = "#1f3248"; ctx.beginPath(); ctx.moveTo(x - 26, y + 27); ctx.lineTo(x + 26, y + 27); ctx.lineTo(x + 16, y - 6); ctx.lineTo(x - 16, y - 6); ctx.closePath(); ctx.fill();
     ctx.fillStyle = "#49649a"; ctx.beginPath(); ctx.moveTo(x - 15, y - 4); ctx.lineTo(x + 15, y - 4); ctx.lineTo(x + 10, y + 24); ctx.lineTo(x - 10, y + 24); ctx.closePath(); ctx.fill();
@@ -920,7 +931,7 @@ P1_DEFAULT = {
     ctx.fillStyle = "#f4d7ae"; ctx.beginPath(); ctx.arc(x, y - 19, 15, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = "#23304b"; ctx.beginPath(); ctx.arc(x, y - 25, 16, Math.PI, Math.PI * 2); ctx.fill(); ctx.fillRect(x - 16, y - 26, 32, 6);
     ctx.fillStyle = "#fff0be"; ctx.fillRect(x - 9, y - 24, 18, 3); ctx.fillStyle = "#25314a"; ctx.fillRect(x - 8, y - 18, 4, 2); ctx.fillRect(x + 4, y - 18, 4, 2);
-    if (B.player.dead) { ctx.globalAlpha = 1; ctx.fillStyle = "#f17a6b"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; ctx.fillText("重伤观战", x, y - 48); }
+    if (downed) { ctx.restore(); ctx.globalAlpha = 1; ctx.fillStyle = "#f17a6b"; ctx.font = "bold 10px sans-serif"; ctx.textAlign = "center"; ctx.fillText("战败观战", x, y - 48); }
     ctx.restore();
   }
   function drawPetSprite() {

@@ -1853,6 +1853,9 @@ button:active {
 .wall.is-broken { border-color: #dd695c; background: #4e2c33d9; }
 .wall.is-broken .green i { background: #7c4343; }
 .wall.is-broken small { color: #ffc0a4; }
+.wall.is-compromised { border-color: #d9ad5b; background: #4b4230d9; }
+.wall.is-compromised .green i { background: linear-gradient(90deg, #d88455, #f0c564); }
+.wall.is-compromised small { color: #ffe0a1; }
 @media (max-width: 430px) {
   .battle-bottom { min-height: 164px; }
   .battle-vitals { gap: 5px; }

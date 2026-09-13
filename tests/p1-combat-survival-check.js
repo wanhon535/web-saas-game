@@ -2,7 +2,7 @@
  * 《修仙御兽：万剑封妖》P1+ 战斗生存规则检查。
  *
  * 验证主角生命、护宗大阵、普通妖物近战拦截、Boss 双目标远程攻击、
- * 护阵自修复及“主角与护阵同时失守才失败”的确认规则。
+ * 护阵归零重构、主角战败观战及“护阵曾破后主角死亡才失败”的确认规则。
  * 运行：node .\tests\p1-combat-survival-check.js
  */
 const fs = require("fs");
@@ -95,6 +95,7 @@ assert(!test.bothDefensesLost(), "只有主角阵亡时不满足双失守失败�
 test.damageWall(100, "测试攻阵");
 assert(test.B.wallBroken, "护阵生命归零后写入已破状态");
 assert(test.B.finished, "主角已阵亡且护阵被击破时才结算失败");
+assert(test.damagePlayer(10, "死亡后追击") === false, "主角战败后不再承受额外伤害");
 
 resetBattle(test);
 test.damageWall(100, "测试攻阵");
@@ -113,6 +114,16 @@ assert(!test.repairWallIfQuiet(1), "护阵持续受击时不会自我修复");
 assert(test.B.wallQuietFor === 0, "护阵再次受击会重置修复等待时间");
 
 resetBattle(test);
+test.damageWall(100, "破阵测试");
+assert(test.B.wallBroken && test.B.hp === 0 && !test.B.finished, "主角存活时护阵归零进入可重构的破阵状态");
+test.B.wallUnderAttack = false;
+test.B.wallQuietFor = 2.4;
+assert(test.repairWallIfQuiet(0.5), "护阵归零后脱离攻击也会开始重构");
+assert(test.B.hp > 0 && test.B.wallBroken, "护阵重构恢复生命但保留曾被击破记录");
+test.damagePlayer(100, "破阵后近战");
+assert(test.B.finished, "护阵曾被击破后主角阵亡会立即结束试炼");
+
+resetBattle(test);
 const normal = { x: 190, y: 450, r: 30, speed: 18, slow: 0, meleeDamage: 15, meleeInterval: 1.2, attackCooldown: 0, wallDamage: 25, wallInterval: 1.5, wallAttackCooldown: 1, name: "污化狼妖" };
 test.updateNormalEnemy(normal, 0.1, { h: 680 });
 assert(normal.mode === "melee" && normal.y === 450, "普通妖物接近主角后暂停推进并转为近战攻击");
@@ -120,6 +131,13 @@ assert(test.B.player.hp === 85, "普通妖物近战会实际扣除主角生命")
 test.B.player.x = 360;
 test.updateNormalEnemy(normal, 0.5, { h: 680 });
 assert(normal.mode === "advance" && normal.y > 450, "主角拉开距离后普通妖物恢复向护阵推进");
+
+resetBattle(test);
+test.damagePlayer(100, "战败状态");
+const enemyAfterDefeat = { x: 190, y: 450, r: 30, speed: 18, slow: 0, meleeDamage: 15, meleeInterval: 1.2, attackCooldown: 0, wallDamage: 25, wallInterval: 1.5, wallAttackCooldown: 1, name: "污化狼妖" };
+test.updateNormalEnemy(enemyAfterDefeat, 0.1, { h: 680 });
+assert(enemyAfterDefeat.mode !== "melee", "主角战败后普通妖物不再以主角为攻击目标");
+assert(test.B.player.hp === 0, "主角血条归零后不会被普通妖物继续扣血");
 
 resetBattle(test);
 const boss = { x: 190, y: 180, anchorY: 180, speed: 20, r: 44, enraged: false, meleeCooldown: 2, rangedCooldown: 0, mode: "guard", name: "寻木青雀" };
