@@ -26,9 +26,14 @@ assert(html.includes('data-placeholder-title="仙玉"') && html.includes('data-p
 for (const label of ['任务', '好友', '邮件']) assert(html.includes(`data-placeholder-title="${label}"`), `首页显示「${label}」快捷图标`);
 assert(html.includes('id="homePlaceholderPanel"') && html.includes('data-action="close-home-placeholder"'), '暂未开发的入口使用可关闭占位窗口');
 const homeMarkup = html.match(/<section id="home"[\s\S]*?<section id="equip"/)?.[0] || '';
-assert(!homeMarkup.includes('class="tabbar"'), '首页不再保留重复的底部页面导航');
-assert(homeMarkup.includes('class="home-bottom-promo"') && homeMarkup.includes('data-action="toggle-home-promos"'), '首页底部使用活动与福利收纳入口');
-assert(css.includes('.home-quick-nav') && css.includes('.home-bottom-promo') && css.includes('.home-placeholder-panel'), '首页新增布局和底部收纳样式存在');
+const quickNavIndex = homeMarkup.indexOf('id="homeQuickNav"');
+const scrollIndex = homeMarkup.indexOf('<main class="home-scroll">');
+const promoIndex = homeMarkup.indexOf('class="home-bottom-promo"');
+assert(!homeMarkup.includes('class="tabbar"'), '首页不再保留旧的重复页面导航');
+assert(quickNavIndex > promoIndex && quickNavIndex > scrollIndex, '首页主导航位于底部活动入口之后');
+assert(homeMarkup.includes('class="home-bottom-promo"') && homeMarkup.includes('data-action="toggle-home-promos"'), '活动与福利保留为底部导航上方的独立收纳入口');
+assert(css.includes('.home-quick-nav { position: absolute;') && css.includes('bottom: 0;') && css.includes('.home-bottom-promo { position: absolute;'), '首页主导航与活动入口的底部布局样式存在');
+assert(css.includes('.home-bottom-promo .home-promo-panel[hidden] { display: none; }'), '活动收纳面板在未展开时保持隐藏');
 assert(game.includes('function toggleHomePromos(show)') && game.includes('function openHomePlaceholder(title, icon ='), '首页收纳与占位窗口交互已接入');
 assert(game.includes('setText("jadeTop", "0")') && game.includes('setText("homePowerValue", currentPower())'), '首页资产与修为展示由现有数据刷新');
 assert(!game.includes('仙石'), '玩家可见的游戏文本已统一使用灵石');

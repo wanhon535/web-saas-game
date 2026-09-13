@@ -1954,7 +1954,7 @@ button:active {
 #home .home-resources .resource span { display: grid; gap: 0; }
 #home .home-resources .resource small { color: #c9e3db; font-size: 9px; }
 #home .home-resources .resource b { color: #fff7d4; font-size: 12px; line-height: 14px; }
-.home-quick-nav { height: 45px; flex: 0 0 45px; display: grid; grid-template-columns: repeat(5, 1fr); position: relative; z-index: 5; background: linear-gradient(#f8e6b6, #d9bd84); border-bottom: 2px solid #83593a; }
+.home-quick-nav { position: absolute; z-index: 9; right: 0; bottom: 0; left: 0; height: 45px; display: grid; grid-template-columns: repeat(5, 1fr); background: linear-gradient(#f8e6b6, #d9bd84); border-top: 2px solid #83593a; box-shadow: 0 -2px 6px #17263644; }
 .home-quick-nav button { display: grid; place-items: center; align-content: center; gap: 1px; padding: 2px; color: #563b27; background: transparent; font-size: 10px; font-weight: 900; }
 .home-quick-nav button + button { border-left: 1px solid #b8925e; }
 .home-quick-nav button i { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 7px; color: #fff4c6; background: linear-gradient(#476d75, #254754); border: 1px solid #fff0b0; font-size: 11px; font-style: normal; box-shadow: 0 1px 0 #65442d; }
@@ -1978,15 +1978,12 @@ button:active {
 .home-utility-rail button, .home-promo-panel button { width: 28px; min-height: 38px; padding: 2px; display: grid; place-items: center; align-content: center; gap: 1px; position: relative; border: 1.5px solid #765139; border-radius: 8px; color: #fff3c4; background: linear-gradient(#486c75, #294856); box-shadow: 0 2px 0 #6d4934; }
 .home-utility-rail button i, .home-promo-panel button i { font-size: 13px; font-style: normal; font-weight: 1000; }
 .home-utility-rail button small, .home-promo-panel button small { font-size: 7px; white-space: nowrap; }
-.home-bottom-promo { position: absolute; z-index: 8; left: 0; right: 0; bottom: 0; min-height: 54px; display: flex; align-items: stretch; justify-content: center; padding: 5px 10px; background: linear-gradient(#284457, #172c3b); border-top: 2px solid #79533b; box-shadow: 0 -3px 8px #17263655; }
-.home-bottom-promo > .home-rail-toggle { width: min(100%, 350px); min-height: 42px; display: grid; grid-template-columns: 28px 1fr 18px; align-items: center; gap: 8px; padding: 4px 10px; border: 1.5px solid #c69555; border-radius: 12px; color: #fff3c4; text-align: left; background: linear-gradient(#a75e36, #713928); box-shadow: 0 2px 0 #3d2730; }
+.home-bottom-promo { position: absolute; z-index: 10; right: 7px; bottom: 52px; display: flex; justify-content: flex-end; }
+.home-bottom-promo > .home-rail-toggle { width: 42px; min-height: 42px; display: grid; place-items: center; padding: 3px; border: 1.5px solid #c69555; border-radius: 11px; color: #fff3c4; background: linear-gradient(#a75e36, #713928); box-shadow: 0 2px 0 #3d2730; }
 .home-bottom-promo > .home-rail-toggle > i { display: grid; place-items: center; width: 27px; height: 27px; border: 1px solid #ffe0a0; border-radius: 8px; color: #ffe5a0; font-size: 14px; font-style: normal; background: #6b3541; }
-.home-bottom-promo > .home-rail-toggle span { display: grid; gap: 1px; }
-.home-bottom-promo > .home-rail-toggle b { font-size: 11px; line-height: 13px; }
-.home-bottom-promo > .home-rail-toggle small { color: #f7d3a1; font-size: 8px; line-height: 10px; }
-.home-bottom-promo > .home-rail-toggle em { color: #ffe5a0; font-size: 15px; font-style: normal; text-align: right; transition: transform .16s ease; }
-.home-bottom-promo > .home-rail-toggle.is-open em { transform: rotate(180deg); }
-.home-bottom-promo .home-promo-panel { position: absolute; left: 50%; bottom: 53px; width: min(350px, calc(100vw - 22px)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 7px; transform: translateX(-50%); border: 1.5px solid #89603d; border-radius: 12px; background: linear-gradient(#f7e5bb, #d9b778); box-shadow: 0 5px 0 #71482f, 0 12px 25px #0005; }
+.home-bottom-promo > .home-rail-toggle span, .home-bottom-promo > .home-rail-toggle em { display: none; }
+.home-bottom-promo .home-promo-panel { position: absolute; right: 0; bottom: 48px; width: min(240px, calc(100vw - 22px)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 7px; border: 1.5px solid #89603d; border-radius: 12px; background: linear-gradient(#f7e5bb, #d9b778); box-shadow: 0 5px 0 #71482f, 0 12px 25px #0005; }
+.home-bottom-promo .home-promo-panel[hidden] { display: none; }
 .home-bottom-promo .home-promo-panel button { width: auto; min-height: 42px; border-radius: 9px; }
 .home-bottom-promo .home-promo-panel button small { color: #fff3c4; font-size: 8px; white-space: nowrap; }
 .home-promo-panel button:nth-child(2) { background: linear-gradient(#a35353, #6b3541); }
