@@ -1757,17 +1757,8 @@ button:active {
   box-shadow: 0 2px 0 #805039;
 }
 .pet-seal { color: #245d58; }
-#pet .pet-topbar { height: 74px; flex-basis: 74px; padding: 7px 10px; background: linear-gradient(180deg, #285d61, #173b47); border-bottom-color: #5e5137; }
-#pet .pet-identity { min-width: 0; gap: 7px; }
-#pet .pet-avatar { width: 52px; height: 52px; flex: 0 0 52px; border-radius: 15px; color: #efffcc; font-size: 25px; background: radial-gradient(circle at 38% 28%, #fff9c4 0 13%, transparent 14%), linear-gradient(135deg, #559e86, #b9df9a 48%, #3b6e68 49%); }
-#pet .pet-identity b { color: #fff8d5; font-size: 15px; }
-#pet .pet-identity small { color: #d7eedf; font-size: 9px; white-space: nowrap; }
-#pet .pet-resources .resource { min-width: 72px; height: 47px; padding: 3px 6px; justify-content: flex-start; gap: 4px; border-radius: 11px; }
-#pet .pet-resources .resource > i { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; font-size: 12px; font-style: normal; background: #8c6838; border: 1px solid #ffdf75; }
-#pet .pet-resources .resource span { display: grid; gap: 0; }
-#pet .pet-resources .resource small { color: #c9e3db; font-size: 8px; }
-#pet .pet-resources .resource b { color: #fff7d4; font-size: 12px; line-height: 14px; }
-.equipment-page, .pet-page { padding-top: 11px; }
+.equipment-page { padding-top: 11px; }
+.pet-page { padding-top: 7px; }
 .equipment-hero {
   min-height: 88px;
   display: grid;
@@ -1827,9 +1818,12 @@ button:active {
 .equip-layout > .gold-btn { min-height: 48px; margin-top: 1px; font-size: 16px; }
 
 .pet-showcase { min-height: 124px; padding: 9px 10px 10px; text-align: left; }
-.pet-showcase-head { display: flex; align-items: center; justify-content: space-between; color: #eff6ce; font-weight: 900; }
+.pet-showcase-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: #eff6ce; font-weight: 900; }
 .pet-showcase-head small { font-size: 9px; letter-spacing: .8px; }
-.pet-showcase-head span { padding: 3px 6px; border: 1px solid #d7e8ac88; border-radius: 8px; background: #1f484f99; font-size: 8px; }
+.pet-showcase-meta { display: flex; align-items: center; gap: 4px; }
+.pet-showcase-head span { padding: 3px 6px; border: 1px solid #d7e8ac88; border-radius: 8px; background: #1f484f99; font-size: 8px; white-space: nowrap; }
+.pet-showcase-head .pet-gourd-count { border-color: #ffe08a88; background: #5e493a99; color: #fff4c9; }
+.pet-showcase-head .pet-gourd-count b { margin-left: 2px; color: #fff8d5; }
 .pet-showcase-body { display: flex; align-items: center; gap: 11px; min-height: 82px; }
 .pet-showcase .pet-orb { width: 78px; height: 78px; flex: 0 0 auto; margin: 0; font-size: 38px; box-shadow: 0 3px 0 #5e493a, 0 0 18px #d7ff9b77; }
 .pet-showcase #petState { margin: 0; color: #fff2c8; font-size: 11px; line-height: 1.45; }
