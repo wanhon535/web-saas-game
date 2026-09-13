@@ -33,7 +33,7 @@ assert(quickNavIndex > scrollIndex, '首页主导航位于页面内容之后的�
 assert(homeMarkup.includes('class="home-utility-rail home-utility-left"') && homeMarkup.includes('data-action="toggle-home-promos"'), '活动与福利恢复为首页左侧收纳入口');
 assert(!homeMarkup.includes('class="home-bottom-promo"'), '首页底部只保留主导航，不再放置活动栏');
 assert(css.includes('.home-quick-nav { position: absolute;') && css.includes('bottom: 0;') && css.includes('.home-utility-left { left: 0;') && css.includes('.home-promo-panel[hidden] { display: none; }'), '首页底部主导航与左侧活动收纳样式存在');
-assert(css.includes('.home-quick-nav { height: 64px; min-height: 64px; }') && css.includes('.home-quick-nav button { min-height: 62px; gap: 3px; padding: 5px 2px 4px; font-size: 12px; line-height: 1.1; }') && css.includes('.home-quick-nav button i { width: 29px; height: 29px; border-radius: 9px; font-size: 15px;') && css.includes('#home .home-scroll { padding-bottom: 76px; }'), '首页与灵宠页底部主导航已放大图标、文字与触控区域，并为首页内容预留空间');
+assert(css.includes('.home-quick-nav { height: 74px; min-height: 74px; }') && css.includes('.home-quick-nav button { min-height: 72px; gap: 4px; padding: 6px 2px 5px; font-size: 13px; line-height: 1.1; }') && css.includes('.home-quick-nav button i { width: 35px; height: 35px; border-radius: 10px; font-size: 17px;') && css.includes('#home .home-scroll { padding-bottom: 88px; }'), '首页与灵宠页底部主导航二次放大图标、文字与触控区域，并为首页内容预留空间');
 assert(game.includes('function toggleHomePromos(show)') && game.includes('function openHomePlaceholder(title, icon ='), '首页收纳与占位窗口交互已接入');
 assert(game.includes('setText("jadeTop", "0")') && game.includes('setText("homePowerValue", currentPower())'), '首页资产与修为展示由现有数据刷新');
 assert(!game.includes('仙石'), '玩家可见的游戏文本已统一使用灵石');
