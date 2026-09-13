@@ -167,7 +167,8 @@ P1_DEFAULT = {
   function firstAvailableStage() {
     return chapterStages().find(isStageUnlocked) || null;
   }
-  let selectedStageId = P.chapterProgress.currentStage;
+  const PET_RIFT_CLICK_GUARD_MS = 600;
+  let selectedStageId = P.chapterProgress.currentStage, petRiftClickGuardUntil = 0;
   function selectedStage() {
     const current = stageById(selectedStageId);
     if (isStageUnlocked(current)) return current;
@@ -1136,8 +1137,14 @@ P1_DEFAULT = {
     if (a === "toggle-home-promos") toggleHomePromos();
     if (a === "close-home-placeholder") closeHomePlaceholder();
     if (a === "open-home-placeholder") { open("home"); openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon); }
-    if (a === "toggle-chapter-drawer") toggleChapterDrawer();
-    if (a === "open-home") open("home");
+    if (a === "toggle-chapter-drawer") {
+      if (Date.now() < petRiftClickGuardUntil) return;
+      toggleChapterDrawer();
+    }
+    if (a === "open-home") {
+      petRiftClickGuardUntil = Date.now() + PET_RIFT_CLICK_GUARD_MS;
+      open("home");
+    }
     if (a === "close-chapter-drawer") toggleChapterDrawer(false);
     if (a === "start") start(selectedStageId);
     if (a === "select-stage") selectStage(b.dataset.stageId);
