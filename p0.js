@@ -183,7 +183,7 @@ P1_DEFAULT = {
 
   function rewardSummary(reward = {}) {
     const lines = [];
-    if (reward.gold) lines.push(`🪙 ${reward.gold} 仙石`);
+    if (reward.gold) lines.push(`🪙 ${reward.gold} 灵石`);
     Object.entries(reward.materials || {}).forEach(([id, amount]) => { const material = globalThis.P1_CONFIG?.materials?.[id]; if (material && amount) lines.push(`${material.icon} ${material.name} ×${amount}`); });
     if (reward.gear) { const gear = gearById(reward.gear); if (gear) lines.push(`${gear.icon} ${gear.name}`); }
     if (reward.pet) { const pet = petById(reward.pet); if (pet) lines.push(`${pet.icon} ${pet.name}`); }
@@ -197,6 +197,25 @@ P1_DEFAULT = {
     drawer.hidden = !shouldOpen;
     document.body.classList.toggle("chapter-drawer-open", shouldOpen);
     if (toggle) toggle.setAttribute("aria-expanded", String(shouldOpen));
+  }
+  function toggleHomePromos(show) {
+    const panel = $("homePromoPanel"), toggle = $("homePromoToggle");
+    if (!panel) return;
+    const shouldOpen = typeof show === "boolean" ? show : panel.hidden;
+    panel.hidden = !shouldOpen;
+    if (toggle) { toggle.setAttribute("aria-expanded", String(shouldOpen)); toggle.classList.toggle("is-open", shouldOpen); }
+  }
+  function openHomePlaceholder(title, icon = "✦") {
+    const panel = $("homePlaceholderPanel");
+    if (!panel) return;
+    $("homePlaceholderTitle").textContent = title || "功能筹备中";
+    $("homePlaceholderIcon").textContent = icon || "✦";
+    $("homePlaceholderText").textContent = `「${title || "该功能"}」暂未开放，后续版本将补充完整内容。`;
+    panel.hidden = false;
+  }
+  function closeHomePlaceholder() {
+    const panel = $("homePlaceholderPanel");
+    if (panel) panel.hidden = true;
   }
 
   function renderChapterPresentation(stage) {
@@ -263,7 +282,7 @@ P1_DEFAULT = {
     if (!gear) return "法器属性已生效";
     if (gear.stats.damage) return `飞剑伤害 +${gear.stats.damage}`;
     if (gear.stats.wallHp) return `护阵上限 +${gear.stats.wallHp}`;
-    return `仙石结算 +${Math.round(gear.stats.goldBonus * 100)}%`;
+    return `灵石结算 +${Math.round(gear.stats.goldBonus * 100)}%`;
   }
   function renderEquipmentGuide() {
     const target = $("equipmentGuide");
@@ -297,8 +316,8 @@ P1_DEFAULT = {
   }
 
   function profile() {
-    const stats = equipmentStats(); document.querySelectorAll(".gold-value").forEach((x) => (x.textContent = fmt(P.gold)));
-    $("goldTop").textContent = fmt(P.gold); $("gourdTop").textContent = P.gourds; $("gourdPet").textContent = P.gourds; $("gourdCatchCount").textContent = P.gourds;
+    const stats = equipmentStats(); const setText = (id, value) => { const node = $(id); if (node) node.textContent = value; }; document.querySelectorAll(".gold-value").forEach((x) => (x.textContent = fmt(P.gold)));
+    setText("goldTop", fmt(P.gold)); setText("jadeTop", "0"); setText("gourdTop", P.gourds); setText("gourdPet", P.gourds); setText("gourdCatchCount", P.gourds); setText("homePowerValue", currentPower());
     $("damageValue").textContent = effectiveWeaponDamage(); $("baseDamageValue").textContent = P.weaponDamage; $("wallMaxValue").textContent = effectiveWallMaxHp(); $("goldBonusValue").textContent = `+${Math.round(stats.goldBonus * 100)}%`;
     $("swordIronValue").textContent = P.materials.swordIron; $("attackInterval").textContent = ATTACK_INTERVAL.toFixed(2); $("magnetRange").textContent = MAGNET_RANGE; $("weaponName").textContent = `青霄飞剑 +${P.weaponLevel}`; $("powerValue").textContent = currentPower(); $("upgradeCost").textContent = 300 + P.weaponLevel * 180;
     renderGearSlots(); renderGearInventory(); renderEquipmentGuide();
@@ -674,7 +693,7 @@ P1_DEFAULT = {
     $("resultTitle").textContent = win ? successTitle : B.outcome === "阵毁身陨" ? "阵毁身陨" : "守阵失守"; const resultChapter = $("resultChapter"); if (resultChapter) resultChapter.textContent = chapterConfig(B.stage).eyebrow;
     $("resultSub").textContent = win ? (stageRewards?.showEquipmentGuide ? "「叶轻舟」荒原残器尚有灵性。去法宝页穿戴它，让剑意真正归于你手。" : B.stage?.outro ? `「${B.stage.outro.speaker}」${B.stage.outro.text}` : "万剑归鞘，荒原妖气暂息。") : "本次已自动拾取的基础战利品将带回洞府。";
     $("resultWall").textContent = Math.max(0, Math.ceil((B.hp / B.maxHp) * 100)) + "%"; $("resultDamage").textContent = fmt(B.damage); $("resultBoss").textContent = win ? B.outcome || (B.stage?.type === "story" ? "章节结算完成" : "妖潮已退") : "妖潮突破";
-    const rewards = [["🪙", `仙石 +${earned}`], ...(stageRewards?.items?.length ? stageRewards.items : win ? [["📜", "试炼完成"]] : [["📜", "基础战利品"]]), ...(stageRewards ? [["✦", stageRewards.firstClear ? "首通记录已写入" : "重复试炼记录"]] : [])];
+    const rewards = [["🪙", `灵石 +${earned}`], ...(stageRewards?.items?.length ? stageRewards.items : win ? [["📜", "试炼完成"]] : [["📜", "基础战利品"]]), ...(stageRewards ? [["✦", stageRewards.firstClear ? "首通记录已写入" : "重复试炼记录"]] : [])];
     $("rewards").innerHTML = rewards.map((item) => `<div class="reward"><i>${item[0]}</i>${item[1]}</div>`).join(""); open("result");
   }
   function updatePetSkillButton() {
@@ -690,7 +709,7 @@ P1_DEFAULT = {
   function upgradePet() {
     const pet = activePetConfig(); if (!pet) { toast("尚未结契可培养的御兽"); return false; }
     const level = activePetLevel(); if (level >= pet.levelCap) { toast("寻木青雀已达当前培养上限"); return false; }
-    if (P.gold < pet.upgrade.gold || P.materials.qingqueFeather < pet.upgrade.feather) { toast("仙石或青雀灵羽不足"); return false; }
+    if (P.gold < pet.upgrade.gold || P.materials.qingqueFeather < pet.upgrade.feather) { toast("灵石或青雀灵羽不足"); return false; }
     P.gold -= pet.upgrade.gold; P.materials.qingqueFeather -= pet.upgrade.feather; P.petProgress[pet.id].level = level + 1; save(); profile(); toast(`${pet.name} 升至 Lv.${level + 1}，协战更强`); return true;
   }
   function distanceBetween(a, b) {
@@ -1065,7 +1084,7 @@ P1_DEFAULT = {
   function upgrade() {
     let cost = 300 + P.weaponLevel * 180;
     if (P.gold < cost) {
-      toast("仙石不足，完成试炼可获得更多仙石");
+      toast("灵石不足，完成试炼可获得更多灵石");
       return;
     }
     P.gold -= cost;
@@ -1076,6 +1095,10 @@ P1_DEFAULT = {
     toast("本命飞剑已祭炼，伤害 +3");
   }
   window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !$("homePlaceholderPanel")?.hidden) {
+      closeHomePlaceholder();
+      return;
+    }
     if (e.key === "Escape" && !$("chapterDrawer")?.hidden) {
       toggleChapterDrawer(false);
       return;
@@ -1109,6 +1132,9 @@ P1_DEFAULT = {
       return;
     }
     let a = b.dataset.action;
+    if (b.dataset.placeholderTitle) openHomePlaceholder(b.dataset.placeholderTitle, b.dataset.placeholderIcon);
+    if (a === "toggle-home-promos") toggleHomePromos();
+    if (a === "close-home-placeholder") closeHomePlaceholder();
     if (a === "toggle-chapter-drawer") toggleChapterDrawer();
     if (a === "close-chapter-drawer") toggleChapterDrawer(false);
     if (a === "start") start(selectedStageId);

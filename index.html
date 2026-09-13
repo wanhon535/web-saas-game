@@ -12,76 +12,63 @@
   <body>
     <div id="app">
       <section id="home" class="screen active">
-        <header class="topbar">
-          <div class="identity">
-            <div class="avatar">☯</div>
-            <div><b>万剑真君</b><small>天衍剑宗 · 末代宗主</small></div>
-          </div>
-          <div class="resources">
-            <div class="resource">🪙 <span id="goldTop">8800</span></div>
-            <div class="resource">🍶 <span id="gourdTop">3</span></div>
+        <header class="topbar home-topbar">
+          <button id="homeProfile" class="identity home-profile" data-nav="equip" aria-label="进入法宝配置">
+            <div class="avatar home-avatar">剑</div>
+            <div><b>万剑真君 <em>Lv.1</em></b><small>ID：WJ-0001 · 炼气初期</small><small>修为 <strong id="homePowerValue">126</strong></small></div>
+          </button>
+          <div class="resources home-resources" aria-label="玩家资产">
+            <div class="resource"><i>◈</i><span><small>灵石</small><b id="goldTop">8800</b></span></div>
+            <button class="resource jade-resource" data-placeholder-title="仙玉" data-placeholder-icon="◇"><i>◇</i><span><small>仙玉</small><b id="jadeTop">0</b></span></button>
           </div>
         </header>
+        <nav id="homeQuickNav" class="home-quick-nav" aria-label="主要功能">
+          <button data-placeholder-title="仙坊" data-placeholder-icon="坊"><i>坊</i><span>仙坊</span></button>
+          <button data-nav="pet"><i>灵</i><span>灵宠</span></button>
+          <button data-action="toggle-chapter-drawer"><i>隙</i><span>妖隙</span></button>
+          <button data-placeholder-title="剑域" data-placeholder-icon="域"><i>域</i><span>剑域</span></button>
+          <button data-placeholder-title="宗门" data-placeholder-icon="宗"><i>宗</i><span>宗门</span></button>
+        </nav>
         <main class="home-scroll">
-          <section class="chapter-card chapter-map-card">
-            <div class="mist"></div>
-            <div class="chapter-heading">
-              <small id="chapterEyebrow">第一章 · 幽冥荒原</small>
-              <h1 id="chapterTitle">幽 冥 荒 原</h1>
-              <p id="chapterTagline">妖气冲霄，唯万剑可封</p>
-            </div>
-            <div id="chapterBossIcon" class="boss-sigil">🦅</div>
-            <div id="chapterBossLabel" class="boss-label">
-              章节 Boss · 寻木青雀<small id="chapterBossHint">完成 1-08 后开放首次结契</small>
-            </div>          </section>
-          <section class="home-command-deck" aria-label="当前试炼">
-            <button
-              id="chapterDrawerToggle"
-              class="chapter-progress-toggle"
-              data-action="toggle-chapter-drawer"
-              aria-controls="chapterDrawer"
-              aria-expanded="false"
-            >
-              <span><i id="chapterProgressLabel">第一章进度</i> <b id="chapterProgressText">0 / 10</b></span>
-              <small>关卡总览 ›</small>
-            </button>
-            <section
-              id="stageBrief"
-              class="stage-brief"
-              aria-live="polite"
-            ></section>
-            <section id="equipmentGuide" class="equipment-guide" aria-live="polite" hidden></section>
-            <div class="home-action-row">
-              <section class="formation">
-                <b>本次出战</b>
-                <div class="mini-pet" id="formationPet">✦</div>
-                <span id="formationState">万剑真君 · 初始一柄飞剑</span>
-              </section>
-              <button id="stageStart" class="start-btn" data-action="start">
-                进入试炼<small>完成当前试炼，解锁下一节点</small>
-              </button>
-            </div>
+          <section class="home-dashboard">
+            <aside class="home-utility-rail home-utility-left" aria-label="活动入口">
+              <button id="homePromoToggle" class="home-rail-toggle" data-action="toggle-home-promos" aria-expanded="false"><i>礼</i><small>活动</small><b>⌄</b></button>
+              <div id="homePromoPanel" class="home-promo-panel" hidden>
+                <button data-placeholder-title="仙玉" data-placeholder-icon="◇"><i>◇</i><small>仙玉</small></button>
+                <button data-placeholder-title="特惠" data-placeholder-icon="惠"><i>惠</i><small>特惠</small><span class="notice-dot" aria-hidden="true"></span></button>
+                <button data-placeholder-title="活动" data-placeholder-icon="礼"><i>礼</i><small>活动</small></button>
+              </div>
+            </aside>
+            <aside class="home-utility-rail home-utility-right" aria-label="社交入口">
+              <button data-placeholder-title="任务" data-placeholder-icon="卷"><i>卷</i><small>任务</small><span class="notice-dot" aria-hidden="true"></span></button>
+              <button data-placeholder-title="好友" data-placeholder-icon="友"><i>友</i><small>好友</small></button>
+              <button data-placeholder-title="邮件" data-placeholder-icon="信"><i>信</i><small>邮件</small><span class="notice-dot" aria-hidden="true"></span></button>
+            </aside>
+            <section class="chapter-card chapter-map-card">
+              <div class="mist"></div>
+              <div class="chapter-heading"><small id="chapterEyebrow">第一章 · 幽冥荒原</small><h1 id="chapterTitle">幽 冥 荒 原</h1><p id="chapterTagline">妖气冲霄，唯万剑可封</p></div>
+              <div id="chapterBossIcon" class="boss-sigil">🦅</div>
+              <div id="chapterBossLabel" class="boss-label">章节 Boss · 寻木青雀<small id="chapterBossHint">完成 1-08 后开放首次结契</small></div>
+              <button class="home-character-entry" data-nav="equip" aria-label="点击进入法宝配置"><span class="home-character-art"><i>✦</i><b>剑</b></span><span><b>万剑真君</b><small>点击配置法宝</small></span></button>
+            </section>
+            <section class="home-command-deck" aria-label="当前试炼">
+              <button id="chapterDrawerToggle" class="chapter-progress-toggle" data-action="toggle-chapter-drawer" aria-controls="chapterDrawer" aria-expanded="false"><span><i id="chapterProgressLabel">第一章进度</i> <b id="chapterProgressText">0 / 10</b></span><small>选择副本 ›</small></button>
+              <section id="stageBrief" class="stage-brief" aria-live="polite"></section>
+              <section id="equipmentGuide" class="equipment-guide" aria-live="polite" hidden></section>
+              <div class="home-action-row"><section class="formation"><b>本次出战</b><div class="mini-pet" id="formationPet">✦</div><span id="formationState">万剑真君 · 初始一柄飞剑</span></section><button id="stageStart" class="start-btn" data-action="start">进入试炼<small>完成当前试炼，解锁下一节点</small></button></div>
+            </section>
           </section>
         </main>
         <aside id="chapterDrawer" class="chapter-drawer" hidden>
           <button class="drawer-scrim" data-action="close-chapter-drawer" aria-label="关闭章节列表"></button>
-          <section class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="chapterDrawerTitle">
-            <header class="drawer-head">
-              <div><small id="chapterDrawerEyebrow">天衍剑宗 · 幽冥荒原</small><h2 id="chapterDrawerTitle">章节试炼</h2></div>
-              <button class="drawer-close" data-action="close-chapter-drawer" aria-label="关闭">×</button>
-            </header>
-            <p id="chapterDrawerNote" class="drawer-note">选择已解锁关卡后，将返回当前章节入口。</p>
-            <div id="stageMap" class="stage-map" aria-label="第一章关卡地图"></div>
-          </section>
+          <section class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="chapterDrawerTitle"><header class="drawer-head"><div><small id="chapterDrawerEyebrow">天衍剑宗 · 幽冥荒原</small><h2 id="chapterDrawerTitle">章节试炼</h2></div><button class="drawer-close" data-action="close-chapter-drawer" aria-label="关闭">×</button></header><p id="chapterDrawerNote" class="drawer-note">选择已解锁关卡后，将返回当前章节入口。</p><div id="stageMap" class="stage-map" aria-label="第一章关卡地图"></div></section>
         </aside>
-        <nav class="tabbar">
-          <button class="tab active" data-nav="home">
-            ⛩️<small>荒原</small></button
-          ><button class="tab" data-nav="equip">⚔️<small>法宝</small></button
-          ><button class="tab" data-nav="pet">🦊<small>灵宠</small></button>
-        </nav>
+        <aside id="homePlaceholderPanel" class="home-placeholder-panel" hidden>
+          <button class="drawer-scrim" data-action="close-home-placeholder" aria-label="关闭功能提示"></button>
+          <section class="home-placeholder-sheet" role="dialog" aria-modal="true" aria-labelledby="homePlaceholderTitle"><i id="homePlaceholderIcon">✦</i><h2 id="homePlaceholderTitle">功能筹备中</h2><p id="homePlaceholderText">该功能将在后续版本开放。</p><button class="gold-btn" data-action="close-home-placeholder">知道了</button></section>
+        </aside>
+        <nav class="tabbar"><button class="tab active" data-nav="home">⛩️<small>洞府</small></button><button class="tab" data-nav="equip">⚔️<small>法宝</small></button><button class="tab" data-nav="pet">🦊<small>灵宠</small></button></nav>
       </section>
-
       <section id="equip" class="screen sub-screen">
         <header class="topbar">
           <div class="identity">
@@ -126,10 +113,10 @@
             <div class="stats">
               <p><small>飞剑伤害</small><b><span id="damageValue">16</span><em>基础 <span id="baseDamageValue">16</span></em></b></p>
               <p><small>护阵上限</small><b id="wallMaxValue">1200</b></p>
-              <p><small>仙石结算</small><b id="goldBonusValue">+0%</b></p>
+              <p><small>灵石结算</small><b id="goldBonusValue">+0%</b></p>
             </div>
             <button class="gold-btn" data-action="upgrade">
-              祭炼飞剑<small>消耗 <span id="upgradeCost">480</span> 仙石</small>
+              祭炼飞剑<small>消耗 <span id="upgradeCost">480</span> 灵石</small>
             </button>
           </section>
           <details class="fold-card stats-fold">
@@ -192,7 +179,7 @@
             <div class="pet-growth-head"><b>结契培养</b><span>灵羽 <i id="petFeather">0</i></span></div>
             <div class="pet-metric"><small>御兽等级</small><b id="petLevel">未结契</b></div>
             <div class="pet-metric pet-skill-metric"><small>主动技能</small><b id="petSkillInfo">尚未开放协战技能</b></div>
-            <button id="petUpgrade" class="gold-btn small-gold" data-action="upgrade-pet">培养御兽<small>180 仙石 · 1 青雀灵羽</small></button>
+            <button id="petUpgrade" class="gold-btn small-gold" data-action="upgrade-pet">培养御兽<small>180 灵石 · 1 青雀灵羽</small></button>
           </section>
           <p class="pet-unlock-note">更多御兽将随主线逐步开放。</p>
         </main>
@@ -264,7 +251,7 @@
             </div>
           </div>
           <div class="battle-actions">
-            <b class="run-gold">本局仙石 <span id="runGold">0</span></b>
+            <b class="run-gold">本局灵石 <span id="runGold">0</span></b>
             <button data-action="pet-skill" id="petSkill" class="pet-skill" hidden>✦ 青翎回风<small>寻木青雀协战</small></button>
           </div>
           <p class="battle-tip">自动御剑中 · 拖动主角或使用方向键躲避妖潮</p>

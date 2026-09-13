@@ -1913,3 +1913,100 @@ button:active {
   .catch-panel { bottom: 167px; }
   .revive-panel { bottom: 184px; }
 }
+/* 2026-09-13 首页洞府重构：参考轻量卡片层级，保留天衍剑宗主题。 */
+#home {
+  background: linear-gradient(#5b9aa0 0%, #cbe2cf 43%, #ead9b0 100%);
+}
+#home .home-topbar {
+  height: 74px;
+  flex-basis: 74px;
+  padding: 7px 10px;
+  background: linear-gradient(180deg, #2a5262, #193443);
+}
+.home-profile {
+  min-width: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: #fff8d5;
+  text-align: left;
+  background: transparent;
+}
+.home-avatar {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: 15px;
+  font-size: 25px;
+  background: radial-gradient(circle at 38% 28%, #fff4bf 0 13%, transparent 14%), linear-gradient(135deg, #a55b32, #e6bb61 48%, #42677b 49%);
+}
+.home-profile-copy { min-width: 98px; display: grid; gap: 1px; }
+.home-profile-copy b { font-size: 13px; white-space: nowrap; }
+.home-profile-copy b em { margin-left: 3px; padding: 1px 4px; border-radius: 5px; background: #a76432; color: #fff0b4; font-size: 9px; font-style: normal; }
+.home-profile-copy small { color: #d7eedf; font-size: 9px; white-space: nowrap; }
+.home-profile-copy i { color: #ffd976; font-size: 9px; font-style: normal; white-space: nowrap; }
+.home-profile-copy strong { color: #fff9d7; font-size: 10px; }
+#home .home-resources { gap: 4px; }
+#home .home-resources .resource { min-width: 64px; height: 47px; padding: 3px 6px; justify-content: flex-start; gap: 4px; border-radius: 11px; }
+#home .home-resources .resource > i { width: 20px; height: 20px; display: grid; place-items: center; border-radius: 50%; color: #fff4bf; font-size: 16px; font-style: normal; background: #a76c2d; border: 1px solid #ffdf75; }
+#home .home-resources .jade-resource > i { color: #e9ffff; background: #3189a6; border-color: #9af0f0; }
+#home .home-resources .resource span { display: grid; gap: 0; }
+#home .home-resources .resource small { color: #c9e3db; font-size: 9px; }
+#home .home-resources .resource b { color: #fff7d4; font-size: 12px; line-height: 14px; }
+.home-quick-nav { height: 45px; flex: 0 0 45px; display: grid; grid-template-columns: repeat(5, 1fr); position: relative; z-index: 5; background: linear-gradient(#f8e6b6, #d9bd84); border-bottom: 2px solid #83593a; }
+.home-quick-nav button { display: grid; place-items: center; align-content: center; gap: 1px; padding: 2px; color: #563b27; background: transparent; font-size: 10px; font-weight: 900; }
+.home-quick-nav button + button { border-left: 1px solid #b8925e; }
+.home-quick-nav button i { width: 21px; height: 21px; display: grid; place-items: center; border-radius: 7px; color: #fff4c6; background: linear-gradient(#476d75, #254754); border: 1px solid #fff0b0; font-size: 11px; font-style: normal; box-shadow: 0 1px 0 #65442d; }
+.home-quick-nav button:nth-child(3) i { background: linear-gradient(#8a5f84, #47334f); }
+.home-quick-nav button:nth-child(5) i { background: linear-gradient(#b16e3a, #654027); }
+#home .home-scroll { overflow: hidden; padding: 6px 8px 77px; background: linear-gradient(#a9d8d2 0%, #d3ead2 46%, #ead6a7 100%); }
+.home-dashboard { height: 100%; min-height: 476px; position: relative; display: flex; flex-direction: column; }
+#home .chapter-card { min-height: 264px; height: min(42vh, 315px); margin: 0 30px; padding: 11px; border-radius: 16px; }
+#home .chapter-heading h1 { font-size: 21px; }
+#home .boss-sigil { top: 76px; width: 96px; height: 96px; font-size: 50px; }
+#home .boss-label { top: 177px; font-size: 12px; }
+.home-character-entry { position: absolute; z-index: 3; left: 10px; bottom: 8px; display: flex; align-items: center; gap: 5px; padding: 4px 8px 4px 4px; border: 1.5px solid #f4dda0; border-radius: 12px; color: #fff8d6; text-align: left; background: #183b49d9; box-shadow: 0 2px 0 #59402d; }
+.home-character-entry span:last-child { display: grid; gap: 1px; }
+.home-character-entry b { font-size: 10px; }
+.home-character-entry small { color: #ffd46f; font-size: 8px; }
+.home-character-art { width: 44px; height: 50px; position: relative; display: grid; place-items: center; overflow: hidden; border-radius: 10px 10px 14px 14px; color: #fff4be; font-size: 22px; background: linear-gradient(135deg, #dde6cf 0 22%, #4c7580 23% 47%, #273d5c 48% 70%, #97623b 71%); border: 1px solid #f7e8ae; }
+.home-character-art i { position: absolute; right: 3px; top: 1px; color: #ffe783; font-size: 11px; font-style: normal; }
+.home-character-art b { position: relative; font-size: 23px; text-shadow: 0 2px #193340; }
+.home-utility-rail { position: absolute; z-index: 4; top: 47px; display: flex; flex-direction: column; gap: 5px; }
+.home-utility-left { left: 0; align-items: flex-start; }
+.home-utility-right { right: 0; }
+.home-utility-rail button, .home-promo-panel button { width: 28px; min-height: 38px; padding: 2px; display: grid; place-items: center; align-content: center; gap: 1px; position: relative; border: 1.5px solid #765139; border-radius: 8px; color: #fff3c4; background: linear-gradient(#486c75, #294856); box-shadow: 0 2px 0 #6d4934; }
+.home-utility-rail button i, .home-promo-panel button i { font-size: 13px; font-style: normal; font-weight: 1000; }
+.home-utility-rail button small, .home-promo-panel button small { font-size: 7px; white-space: nowrap; }
+.home-utility-left .home-rail-toggle { background: linear-gradient(#b96e3b, #7a422d); }
+.home-rail-toggle b { font-size: 10px; line-height: 8px; }
+.home-rail-toggle.is-open b { transform: rotate(180deg); }
+.home-promo-panel { display: grid; gap: 5px; }
+.home-promo-panel button:nth-child(2) { background: linear-gradient(#a35353, #6b3541); }
+.home-promo-panel button:nth-child(3) { background: linear-gradient(#8a6d35, #5b4827); }
+.notice-dot { position: absolute; top: -3px; right: -3px; width: 8px; height: 8px; border: 1px solid #fff2c0; border-radius: 50%; background: #e95e52; }
+#home .home-command-deck { margin: 7px 30px 0; padding: 0; display: block; background: transparent; border: 0; box-shadow: none; }
+#home .chapter-progress-toggle { min-height: 35px; padding: 5px 9px; border-width: 2px; border-radius: 10px; }
+#home .stage-brief { min-height: 61px; margin-top: 5px; padding: 6px 8px; border-radius: 10px; }
+#home .stage-brief-top { font-size: 11px; }
+#home .stage-objective { margin: 4px 0; font-size: 9px; }
+#home .stage-brief > small, #home .stage-reward { font-size: 9px; }
+#home .formation { display: none; }
+#home .start-btn { width: 100%; height: 51px; margin: 6px auto 0; border-radius: 13px; font-size: 18px; }
+#home .start-btn small { font-size: 9px; }
+.home-placeholder-panel { position: absolute; z-index: 20; inset: 0; display: grid; place-items: center; }
+.home-placeholder-panel[hidden] { display: none; }
+.home-placeholder-sheet { position: relative; z-index: 1; width: min(286px, 78%); padding: 23px 20px 18px; border: 3px solid #89603d; border-radius: 18px; color: #573926; text-align: center; background: linear-gradient(#fff5d9, #efd6a0); box-shadow: 0 8px 0 #71482f, 0 20px 38px #0007; }
+.home-placeholder-sheet > i { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fff0ad; font-size: 24px; font-style: normal; background: #365e66; border: 2px solid #fff1b5; }
+.home-placeholder-sheet h2 { margin: 8px 0 4px; font-size: 20px; }
+.home-placeholder-sheet p { margin: 0 0 13px; color: #8a6343; font-size: 12px; }
+@media (max-height: 700px) {
+  #home .home-topbar { height: 68px; flex-basis: 68px; }
+  #home .home-resources .resource { height: 40px; }
+  .home-dashboard { min-height: 426px; }
+  #home .chapter-card { height: min(39vh, 270px); min-height: 238px; }
+  #home .boss-sigil { top: 66px; width: 84px; height: 84px; font-size: 43px; }
+  #home .boss-label { top: 156px; }
+  #home .stage-brief { min-height: 52px; }
+}

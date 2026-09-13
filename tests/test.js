@@ -10,6 +10,7 @@ const checks = [
   { file: 'p1-full-chapter-check.js', name: 'P1 第一章完整版' },
   { file: 'p1-chapter2-check.js', name: 'P1+ 第二章' },
   { file: 'p1-combat-survival-check.js', name: 'P1+ 护阵重构与复生规则' },
+  { file: 'home-ui-check.js', name: '首页 UI 信息架构' },
 ];
 
 let totalAssertions = 0;

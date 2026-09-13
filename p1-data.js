@@ -151,7 +151,7 @@
   const gear = {
     wildBracer: { id: 'wildBracer', name: '荒原护腕', slot: 'bracer', rarity: '凡品', icon: '🪬', stats: { damage: 3 }, description: '残阵玉石制成的护腕，略微增强御剑之力。' },
     arrayRobe: { id: 'arrayRobe', name: '守阵法衣', slot: 'robe', rarity: '凡品', icon: '🧥', stats: { wallHp: 90 }, description: '蕴有残阵灵纹的法衣，能稳固护宗大阵。' },
-    warmJade: { id: 'warmJade', name: '温灵玉佩', slot: 'jade', rarity: '凡品', icon: '📿', stats: { goldBonus: 0.08 }, description: '温养灵息的玉佩，增加基础仙石收获。' },
+    warmJade: { id: 'warmJade', name: '温灵玉佩', slot: 'jade', rarity: '凡品', icon: '📿', stats: { goldBonus: 0.08 }, description: '温养灵息的玉佩，增加基础灵石收获。' },
     stoneTalisman: { id: 'stoneTalisman', name: '石甲镇符', slot: 'talisman', rarity: '灵品', icon: '🪨', stats: { wallHp: 120 }, description: '取石甲兽残纹炼成，进一步稳固护宗大阵。' },
     spiritwoodRobe: { id: 'spiritwoodRobe', name: '灵木法衣', slot: 'robe', rarity: '灵品', icon: '🌿', stats: { wallHp: 150 }, description: '以灵木心材织成，可进一步稳固护宗大阵。' },
     vineBracer: { id: 'vineBracer', name: '玄藤护腕', slot: 'bracer', rarity: '灵品', icon: '🍃', stats: { damage: 7 }, description: '玄藤鹿灵留下的灵藤护腕，增强御剑杀伐之力。' },
